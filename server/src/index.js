@@ -15,6 +15,8 @@ const predictRoutes = require('./routes/predictRoutes');
 const alertRoutes = require('./routes/alertRoutes');
 const insightRoutes = require('./routes/insightRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const weatherRoutes = require('./routes/weatherRoutes');
+const diseaseRoutes = require('./routes/diseaseRoutes');
 
 dotenv.config();
 const app = express();
@@ -48,6 +50,8 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/predict', predictRoutes);
 app.use('/api/insights', insightRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/weather', weatherRoutes);
+app.use('/api/diseases', diseaseRoutes);
 
 // Socket.io connection handling
 io.on('connection', (socket) => {

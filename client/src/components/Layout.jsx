@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, AlertTriangle, BrainCircuit, ChevronLeft, ChevronRight, ClipboardList, HeartPulse, Map, Menu, MessageCircle, MessageSquare, PlusCircle, Search, ShieldCheck, Upload, Bell, Moon, Sun, LogOut, User, X } from 'lucide-react';
+import { Activity, AlertTriangle, BrainCircuit, ChevronLeft, ChevronRight, ClipboardList, HeartPulse, Map, Menu, MessageCircle, MessageSquare, PlusCircle, Search, ShieldCheck, Upload, Bell, Moon, Sun, LogOut, User, X, Cloud, Bug, Calendar, Pill } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +11,8 @@ const doctorNav = [
   { to: '/doctor/alerts', label: 'Alerts', icon: AlertTriangle },
   { to: '/doctor/ai-engine', label: 'AI Engine', icon: BrainCircuit },
   { to: '/doctor/chat', label: 'Patient Chat', icon: MessageSquare },
+  { to: '/doctor/weather', label: 'Weather', icon: Cloud },
+  { to: '/doctor/diseases', label: 'Diseases', icon: Bug },
 ];
 
 const patientNav = [
@@ -20,6 +22,10 @@ const patientNav = [
   { to: '/patient/uploads', label: 'Uploads', icon: Upload },
   { to: '/patient/nearby', label: 'Nearby Risk', icon: Map },
   { to: '/patient/chat', label: 'Doctor Chat', icon: MessageSquare },
+  { to: '/patient/appointments', label: 'Appointments', icon: Calendar },
+  { to: '/patient/medications', label: 'Medications', icon: Pill },
+  { to: '/patient/weather', label: 'Weather', icon: Cloud },
+  { to: '/patient/diseases', label: 'Diseases', icon: Bug },
 ];
 
 export default function Layout({ children }) {
