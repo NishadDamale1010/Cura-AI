@@ -13,6 +13,7 @@ const predictRoutes = require('./routes/predictRoutes');
 const alertRoutes = require('./routes/alertRoutes');
 const insightRoutes = require('./routes/insightRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const healthbotRoutes = require('./routes/healthbotRoutes');
 
 dotenv.config();
 const app = express();
@@ -43,6 +44,7 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/predict', predictRoutes);
 app.use('/api/insights', insightRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/healthbot', healthbotRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

@@ -17,6 +17,7 @@ import ChatbotPage from './pages/ChatbotPage';
 import VitalsPage from './pages/VitalsPage';
 import MedicalUploads from './pages/MedicalUploads';
 import AIEngine from './pages/AIEngine';
+import HealthBotIntegration from './pages/HealthBotIntegration';
 
 const ProtectedLayout = ({ children }) => (
   <ProtectedRoute>
@@ -50,6 +51,7 @@ export default function App() {
       <Route path="/patient/nearby" element={<ProtectedLayout><NearbyRisk /></ProtectedLayout>} />
 
       <Route path="/chat" element={<ProtectedLayout><ChatbotPage /></ProtectedLayout>} />
+      <Route path="/healthbot" element={<ProtectedLayout><HealthBotIntegration /></ProtectedLayout>} />
       <Route path="/" element={<RoleHome />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

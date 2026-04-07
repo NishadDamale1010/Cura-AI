@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, AlertTriangle, BrainCircuit, ChevronLeft, ChevronRight, ClipboardList, HeartPulse, Map, Menu, MessageCircle, PlusCircle, Search, ShieldCheck, Upload, Bell } from 'lucide-react';
+import { Activity, AlertTriangle, BrainCircuit, Bot, ChevronLeft, ChevronRight, ClipboardList, HeartPulse, Map, Menu, MessageCircle, PlusCircle, Search, ShieldCheck, Upload, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 
@@ -9,6 +9,7 @@ const doctorNav = [
   { to: '/doctor/map', label: 'Risk Map', icon: Map },
   { to: '/doctor/alerts', label: 'Alerts', icon: AlertTriangle },
   { to: '/doctor/ai-engine', label: 'AI Engine', icon: BrainCircuit },
+  { to: '/healthbot', label: 'HealthBot', icon: Bot },
 ];
 
 const patientNav = [
@@ -17,6 +18,7 @@ const patientNav = [
   { to: '/patient/vitals', label: 'Vitals', icon: HeartPulse },
   { to: '/patient/uploads', label: 'Uploads', icon: Upload },
   { to: '/patient/nearby', label: 'Nearby Risk', icon: Map },
+  { to: '/healthbot', label: 'HealthBot', icon: Bot },
 ];
 
 export default function Layout({ children }) {

@@ -72,6 +72,8 @@ Frontend → Node/Express → FastAPI ML → MongoDB → Frontend
 ### Insights (chatbot)
 - `GET /api/insights?q=...`
 - `POST /api/chat`
+- `POST /api/healthbot/chat`
+- `GET /api/dashboard/environment?city=Pune`
 
 ---
 
@@ -128,6 +130,8 @@ JWT_SECRET=replace_with_secure_secret
 CLIENT_ORIGIN=http://localhost:5173
 AI_SERVICE_URL=http://127.0.0.1:8000/predict
 OPENWEATHER_API_KEY=your_key_here
+AQICN_API_KEY=your_aqicn_token
+LEGACY_HEALTHBOT_URL=http://localhost:5001/api/chat
 ```
 
 ### `client/.env`

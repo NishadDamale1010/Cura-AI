@@ -13,13 +13,15 @@ export default function DoctorDashboard() {
   const [records, setRecords] = useState([]);
   const [sim, setSim] = useState({ region: 'Pune', symptoms: 'fever,cough', density: 7000 });
   const [simResult, setSimResult] = useState(null);
+  const [environment, setEnvironment] = useState(null);
 
   useEffect(() => {
-    Promise.all([api.get('/api/dashboard/stats'), api.get('/api/alerts'), api.get('/api/data/all')])
-      .then(([s, a, r]) => {
+    Promise.all([api.get('/api/dashboard/stats'), api.get('/api/alerts'), api.get('/api/data/all'), api.get('/api/dashboard/environment', { params: { city: 'Pune' } })])
+      .then(([s, a, r, e]) => {
         setStats(s.data);
         setAlerts(a.data);
         setRecords(r.data);
+        setEnvironment(e.data);
       })
       .catch(() => toast.error('Unable to load doctor dashboard'));
   }, []);
@@ -65,6 +67,13 @@ export default function DoctorDashboard() {
       <div className="card p-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
         <p className="font-semibold">🔥 AI Outbreak Prediction Banner</p>
         <p className="text-sm">AI suggests possible outbreak in Pune in next 3 days (Confidence 84%).</p>
+      </div>
+
+
+      <div className="grid md:grid-cols-3 gap-3">
+        <div className="card p-4"><p className="text-sm text-slate-500">🌦 Temperature</p><p className="text-2xl font-bold">{environment?.weather?.temperature ?? '--'}°C</p><p className="text-xs text-slate-500">Humidity {environment?.weather?.humidity ?? '--'}%</p></div>
+        <div className="card p-4"><p className="text-sm text-slate-500">🌫 Air Quality (AQI)</p><p className="text-2xl font-bold">{environment?.aqi?.aqi ?? '--'}</p><p className="text-xs text-slate-500">{environment?.aqi?.level || 'Moderate'}</p></div>
+        <div className="card p-4"><p className="text-sm text-slate-500">Top Performance</p><div className="mt-2 h-20 w-20 rounded-full border-[10px] border-emerald-200 border-t-emerald-600 grid place-items-center font-bold">70%</div></div>
       </div>
 
       <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-3">
