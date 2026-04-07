@@ -1,55 +1,60 @@
 const HealthRecord = require('../models/HealthRecord');
 const Alert = require('../models/Alert');
 const { getPrediction } = require('../services/predictionService');
-const { sendHighRiskAlert } = require('../services/emailService');
+const { fetchWeather } = require('../services/weatherService');
 
 exports.addRecord = async (req, res) => {
   try {
-    const { symptoms, location, environmental } = req.body;
+    const { symptoms = [], location } = req.body;
+    if (!location?.city) return res.status(400).json({ message: 'City is required' });
 
-    const prediction = await getPrediction({ symptoms, location, environmental });
+    const weather = await fetchWeather(location.city);
+    const weatherLocation = {
+      city: location.city,
+      region: location.region || weather.region || 'Unknown',
+      lat: location.lat || weather.lat,
+      lng: location.lng || weather.lng,
+    };
+
+    const prediction = await getPrediction({ symptoms, temperature: weather.temperature, humidity: weather.humidity });
+
+    const explanation = `Risk is ${prediction.risk} due to ${symptoms.join(', ') || 'mild symptoms'} with temp ${weather.temperature}°C and humidity ${weather.humidity}%.`;
 
     const record = await HealthRecord.create({
+      userId: req.user.id,
       symptoms,
-      location,
-      environmental,
-      prediction,
-      reportedBy: req.user.id,
+      location: weatherLocation,
+      temperature: weather.temperature,
+      humidity: weather.humidity,
+      risk: prediction.risk,
+      probability: prediction.probability,
+      explanation,
     });
 
     if (prediction.risk === 'High') {
-      const alert = await Alert.create({
-        message: `High outbreak risk detected in ${location.city}, ${location.region}. Probability: ${prediction.probability}`,
-        risk: prediction.risk,
-        city: location.city,
-        region: location.region,
+      await Alert.create({
+        location: `${weatherLocation.city}, ${weatherLocation.region}`,
+        message: `High outbreak risk detected in ${weatherLocation.city}.`,
+        risk: 'High',
         recordId: record._id,
       });
-      await sendHighRiskAlert(alert);
     }
 
     return res.status(201).json(record);
   } catch (error) {
-    return res.status(500).json({ message: 'Failed to add record', error: error.message });
+    return res.status(500).json({ message: 'Failed to add data', error: error.message });
   }
 };
 
 exports.getAllRecords = async (req, res) => {
   try {
-    const { region, disease, startDate, endDate } = req.query;
     const query = {};
+    if (req.user.role === 'patient') query.userId = req.user.id;
 
-    if (region) query['location.region'] = region;
-    if (disease) query['prediction.disease'] = disease;
-    if (startDate || endDate) {
-      query.recordedAt = {};
-      if (startDate) query.recordedAt.$gte = new Date(startDate);
-      if (endDate) query.recordedAt.$lte = new Date(endDate);
-    }
-
-    const records = await HealthRecord.find(query).sort({ recordedAt: -1 }).lean();
+    if (req.query.region) query['location.region'] = req.query.region;
+    const records = await HealthRecord.find(query).sort({ createdAt: -1 }).limit(500);
     return res.status(200).json(records);
   } catch (error) {
-    return res.status(500).json({ message: 'Failed to fetch records', error: error.message });
+    return res.status(500).json({ message: 'Failed to fetch data', error: error.message });
   }
 };

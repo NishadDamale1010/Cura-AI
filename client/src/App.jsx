@@ -1,37 +1,54 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import Layout from './components/Layout';
+import { useMemo, useState } from 'react';
+import { useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
+import FloatingChatWidget from './components/FloatingChatWidget';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import DataSources from './pages/DataSources';
-import RealtimeMonitoring from './pages/RealtimeMonitoring';
-import OutbreakPrediction from './pages/OutbreakPrediction';
-import AlertsPage from './pages/AlertsPage';
-import DecisionSupport from './pages/DecisionSupport';
-import SystemArchitecture from './pages/SystemArchitecture';
-import SettingsPrivacy from './pages/SettingsPrivacy';
+import DoctorDashboard from './pages/DoctorDashboard';
+import DoctorReports from './pages/DoctorReports';
+import DoctorAlerts from './pages/DoctorAlerts';
+import DoctorMap from './pages/DoctorMap';
+import PatientDashboard from './pages/PatientDashboard';
+import SymptomSubmit from './pages/SymptomSubmit';
+import NearbyRisk from './pages/NearbyRisk';
+import ChatbotPage from './pages/ChatbotPage';
 
-const ProtectedLayout = ({ children }) => (
-  <ProtectedRoute>
-    <Layout>{children}</Layout>
-  </ProtectedRoute>
-);
+const ProtectedLayout = ({ children }) => {
+  const [darkMode, setDarkMode] = useState(false);
+  return (
+    <ProtectedRoute>
+      <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode((v) => !v)}>{children}</Layout>
+      <FloatingChatWidget />
+    </ProtectedRoute>
+  );
+};
+
+function RoleHome() {
+  const { user } = useAuth();
+  const home = useMemo(() => (user?.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard'), [user]);
+  return <Navigate to={home} replace />;
+}
 
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/dashboard" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
-      <Route path="/data-sources" element={<ProtectedLayout><DataSources /></ProtectedLayout>} />
-      <Route path="/real-time-monitoring" element={<ProtectedLayout><RealtimeMonitoring /></ProtectedLayout>} />
-      <Route path="/outbreak-prediction" element={<ProtectedLayout><OutbreakPrediction /></ProtectedLayout>} />
-      <Route path="/alerts" element={<ProtectedLayout><AlertsPage /></ProtectedLayout>} />
-      <Route path="/decision-support" element={<ProtectedLayout><DecisionSupport /></ProtectedLayout>} />
-      <Route path="/system-architecture" element={<ProtectedLayout><SystemArchitecture /></ProtectedLayout>} />
-      <Route path="/settings-privacy" element={<ProtectedLayout><SettingsPrivacy /></ProtectedLayout>} />
-      <Route path="*" element={<Navigate to="/dashboard" />} />
+
+      <Route path="/doctor/dashboard" element={<ProtectedLayout><DoctorDashboard /></ProtectedLayout>} />
+      <Route path="/doctor/reports" element={<ProtectedLayout><DoctorReports /></ProtectedLayout>} />
+      <Route path="/doctor/alerts" element={<ProtectedLayout><DoctorAlerts /></ProtectedLayout>} />
+      <Route path="/doctor/map" element={<ProtectedLayout><DoctorMap /></ProtectedLayout>} />
+
+      <Route path="/patient/dashboard" element={<ProtectedLayout><PatientDashboard /></ProtectedLayout>} />
+      <Route path="/patient/submit" element={<ProtectedLayout><SymptomSubmit /></ProtectedLayout>} />
+      <Route path="/patient/nearby" element={<ProtectedLayout><NearbyRisk /></ProtectedLayout>} />
+
+      <Route path="/chat" element={<ProtectedLayout><ChatbotPage /></ProtectedLayout>} />
+      <Route path="/" element={<RoleHome />} />
+      <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
 }

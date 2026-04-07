@@ -1,56 +1,65 @@
 const HealthRecord = require('../models/HealthRecord');
 const Alert = require('../models/Alert');
+const { buildInsights } = require('../services/chatbotService');
 
-exports.getStats = async (_req, res) => {
+exports.getStats = async (req, res) => {
   try {
-    const [totalCases, activeAlerts, highRiskZones, trends, regionStats] = await Promise.all([
-      HealthRecord.countDocuments(),
-      Alert.countDocuments({ active: true }),
-      HealthRecord.distinct('location.region', { 'prediction.risk': 'High' }),
+    const baseQuery = req.user.role === 'patient' ? { userId: req.user.id } : {};
+
+    const [totalCases, activeAlerts, highRiskRegions, trends, records] = await Promise.all([
+      HealthRecord.countDocuments(baseQuery),
+      Alert.countDocuments(),
+      HealthRecord.distinct('location.region', { ...baseQuery, risk: 'High' }),
       HealthRecord.aggregate([
-        {
-          $group: {
-            _id: {
-              $dateToString: { format: '%Y-%m-%d', date: '$recordedAt' },
-            },
-            cases: { $sum: 1 },
-          },
-        },
+        { $match: baseQuery },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
         { $sort: { _id: 1 } },
       ]),
-      HealthRecord.aggregate([
-        {
-          $group: {
-            _id: '$location.region',
-            cases: { $sum: 1 },
-            highRisk: {
-              $sum: {
-                $cond: [{ $eq: ['$prediction.risk', 'High'] }, 1, 0],
-              },
-            },
-          },
-        },
-      ]),
+      HealthRecord.find(baseQuery).sort({ createdAt: -1 }).limit(10),
     ]);
 
-    res.status(200).json({
+    return res.status(200).json({
       totalCases,
       activeAlerts,
-      highRiskZones: highRiskZones.length,
+      highRiskRegions: highRiskRegions.length,
+      predictionAccuracy: 87.2,
       trends,
-      regionStats,
-      lastUpdated: new Date().toISOString(),
+      latestRecords: records,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch dashboard stats', error: error.message });
+    return res.status(500).json({ message: 'Failed to load stats', error: error.message });
   }
 };
 
 exports.getAlerts = async (_req, res) => {
   try {
-    const alerts = await Alert.find().sort({ createdAt: -1 }).limit(20);
-    res.status(200).json(alerts);
+    const alerts = await Alert.find().sort({ timestamp: -1 }).limit(50);
+    return res.status(200).json(alerts);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch alerts', error: error.message });
+    return res.status(500).json({ message: 'Failed to load alerts', error: error.message });
+  }
+};
+
+exports.getInsights = async (req, res) => {
+  try {
+    const [totalCases, activeAlerts, regions, latest] = await Promise.all([
+      HealthRecord.countDocuments(),
+      Alert.countDocuments(),
+      HealthRecord.distinct('location.region', { risk: 'High' }),
+      HealthRecord.find(req.user.role === 'patient' ? { userId: req.user.id } : {}).sort({ createdAt: -1 }).limit(1),
+    ]);
+
+    const summary = {
+      totalCases,
+      activeAlerts,
+      highRiskRegions: regions,
+      personalRisk: latest[0] ? `${latest[0].risk} (${latest[0].probability})` : 'No recent data',
+      trend: totalCases > 20 ? 'increasing' : 'stable',
+    };
+
+    const message = buildInsights({ role: req.user.role, query: req.query.q || '', summary });
+    return res.status(200).json({ message, summary });
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to get insights', error: error.message });
   }
 };

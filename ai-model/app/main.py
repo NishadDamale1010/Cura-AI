@@ -13,51 +13,31 @@ if not MODEL_PATH.exists():
 
 model = joblib.load(MODEL_PATH)
 
-app = FastAPI(title='Cura AI Prediction Service')
-
-
-class Location(BaseModel):
-    city: str
-    region: str
-    lat: float | None = None
-    lng: float | None = None
-
-
-class Environmental(BaseModel):
-    temperature: float
-    humidity: float
+app = FastAPI(title='Cura AI Service')
 
 
 class PredictionRequest(BaseModel):
     symptoms: list[str]
-    location: Location
-    environmental: Environmental
+    temperature: float
+    humidity: float
 
 
 @app.get('/healthz')
 def healthz():
-    return {'ok': True, 'service': 'cura-ai-model'}
+    return {'ok': True, 'service': 'cura-ai'}
 
 
 @app.post('/predict')
 def predict(payload: PredictionRequest):
-    symptom_set = set(s.lower() for s in payload.symptoms)
+    s = set(sym.lower() for sym in payload.symptoms)
     features = [[
-        1 if 'fever' in symptom_set else 0,
-        1 if 'cough' in symptom_set else 0,
-        1 if 'headache' in symptom_set else 0,
-        1 if 'fatigue' in symptom_set else 0,
-        1 if 'breathlessness' in symptom_set else 0,
-        payload.environmental.temperature,
-        payload.environmental.humidity,
+        1 if 'fever' in s else 0,
+        1 if 'cough' in s else 0,
+        payload.temperature,
+        payload.humidity,
     ]]
 
-    probability = float(model.predict_proba(features)[0][1])
-    if probability >= 0.75:
-        risk = 'High'
-    elif probability >= 0.45:
-        risk = 'Medium'
-    else:
-        risk = 'Low'
+    proba = float(model.predict_proba(features)[0][1])
+    risk = 'High' if proba >= 0.75 else 'Medium' if proba >= 0.45 else 'Low'
 
-    return {'risk': risk, 'probability': round(probability, 2), 'disease': 'Respiratory Infection'}
+    return {'risk': risk, 'probability': round(proba, 2)}

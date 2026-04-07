@@ -11,6 +11,7 @@ const dataRoutes = require('./routes/dataRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const predictRoutes = require('./routes/predictRoutes');
 const alertRoutes = require('./routes/alertRoutes');
+const insightRoutes = require('./routes/insightRoutes');
 
 dotenv.config();
 const app = express();
@@ -34,6 +35,7 @@ app.use('/api/data', dataRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/alerts', alertRoutes);
 app.use('/api/predict', predictRoutes);
+app.use('/api/insights', insightRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

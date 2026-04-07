@@ -12,7 +12,7 @@ export default function Login() {
     e.preventDefault();
     try {
       await login(form);
-      navigate('/dashboard');
+      navigate('/');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     }
@@ -21,12 +21,12 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
       <form onSubmit={handleSubmit} className="bg-white p-6 rounded-xl shadow max-w-sm w-full space-y-3">
-        <h2 className="text-xl font-bold">Login to Cura AI</h2>
+        <h2 className="text-xl font-bold">Login to Cura</h2>
         <input className="w-full border p-2 rounded" placeholder="Email" onChange={(e) => setForm({ ...form, email: e.target.value })} />
         <input className="w-full border p-2 rounded" type="password" placeholder="Password" onChange={(e) => setForm({ ...form, password: e.target.value })} />
         {error && <p className="text-red-500 text-sm">{error}</p>}
-        <button className="w-full bg-cyan-600 text-white rounded py-2">Login</button>
-        <p className="text-sm">No account? <Link className="text-cyan-600" to="/register">Register</Link></p>
+        <button className="w-full bg-indigo-600 text-white rounded py-2">Login</button>
+        <p className="text-sm">No account? <Link className="text-indigo-600" to="/register">Register</Link></p>
       </form>
     </div>
   );
