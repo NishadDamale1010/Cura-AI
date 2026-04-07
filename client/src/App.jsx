@@ -18,6 +18,10 @@ import VitalsPage from './pages/VitalsPage';
 import MedicalUploads from './pages/MedicalUploads';
 import AIEngine from './pages/AIEngine';
 import DoctorPatientChat from './pages/DoctorPatientChat';
+import WeatherDashboard from './pages/WeatherDashboard';
+import TrendingDiseases from './pages/TrendingDiseases';
+import AppointmentScheduler from './pages/AppointmentScheduler';
+import MedicationTracker from './pages/MedicationTracker';
 
 const ProtectedLayout = ({ children }) => (
   <ProtectedRoute>
@@ -44,6 +48,8 @@ export default function App() {
       <Route path="/doctor/map" element={<ProtectedLayout><DoctorMap /></ProtectedLayout>} />
       <Route path="/doctor/ai-engine" element={<ProtectedLayout><AIEngine /></ProtectedLayout>} />
       <Route path="/doctor/chat" element={<ProtectedLayout><DoctorPatientChat /></ProtectedLayout>} />
+      <Route path="/doctor/weather" element={<ProtectedLayout><WeatherDashboard /></ProtectedLayout>} />
+      <Route path="/doctor/diseases" element={<ProtectedLayout><TrendingDiseases /></ProtectedLayout>} />
 
       <Route path="/patient/dashboard" element={<ProtectedLayout><PatientDashboard /></ProtectedLayout>} />
       <Route path="/patient/submit" element={<ProtectedLayout><SymptomSubmit /></ProtectedLayout>} />
@@ -51,6 +57,10 @@ export default function App() {
       <Route path="/patient/uploads" element={<ProtectedLayout><MedicalUploads /></ProtectedLayout>} />
       <Route path="/patient/nearby" element={<ProtectedLayout><NearbyRisk /></ProtectedLayout>} />
       <Route path="/patient/chat" element={<ProtectedLayout><DoctorPatientChat /></ProtectedLayout>} />
+      <Route path="/patient/appointments" element={<ProtectedLayout><AppointmentScheduler /></ProtectedLayout>} />
+      <Route path="/patient/medications" element={<ProtectedLayout><MedicationTracker /></ProtectedLayout>} />
+      <Route path="/patient/weather" element={<ProtectedLayout><WeatherDashboard /></ProtectedLayout>} />
+      <Route path="/patient/diseases" element={<ProtectedLayout><TrendingDiseases /></ProtectedLayout>} />
 
       <Route path="/chat" element={<ProtectedLayout><ChatbotPage /></ProtectedLayout>} />
       <Route path="/" element={<RoleHome />} />
