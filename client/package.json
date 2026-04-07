@@ -16,7 +16,9 @@
     "react-dom": "^19.2.0",
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.9.5",
-    "recharts": "^3.3.0"
+    "recharts": "^3.3.0",
+    "framer-motion": "^12.10.5",
+    "react-hot-toast": "^2.5.2"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.1.0",
