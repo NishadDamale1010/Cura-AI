@@ -1,18 +1,21 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, AlertTriangle, ClipboardList, Map, MessageCircle, PlusCircle, ShieldCheck } from 'lucide-react';
+import { Activity, AlertTriangle, ClipboardList, Map, MessageCircle, PlusCircle, ShieldCheck, BrainCircuit, Upload, HeartPulse } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const doctorNav = [
-  { to: '/doctor/dashboard', label: 'Dashboard', icon: Activity },
-  { to: '/doctor/reports', label: 'Reports', icon: ClipboardList },
-  { to: '/doctor/alerts', label: 'Alerts', icon: AlertTriangle },
-  { to: '/doctor/map', label: 'Outbreak Map', icon: Map },
+  { to: '/doctor/dashboard', label: 'Patient Overview', icon: Activity },
+  { to: '/doctor/reports', label: 'Case Files', icon: ClipboardList },
+  { to: '/doctor/map', label: 'Regional Insights', icon: Map },
+  { to: '/doctor/alerts', label: 'System Alerts', icon: AlertTriangle },
+  { to: '/doctor/ai-engine', label: 'AI & Prediction', icon: BrainCircuit },
 ];
 
 const patientNav = [
-  { to: '/patient/dashboard', label: 'My Dashboard', icon: Activity },
-  { to: '/patient/submit', label: 'Submit Symptoms', icon: PlusCircle },
-  { to: '/patient/nearby', label: 'Nearby Risk', icon: Map },
+  { to: '/patient/dashboard', label: 'Dashboard', icon: Activity },
+  { to: '/patient/submit', label: 'Symptom Log', icon: PlusCircle },
+  { to: '/patient/vitals', label: 'Vital Signs', icon: HeartPulse },
+  { to: '/patient/uploads', label: 'Medical Uploads', icon: Upload },
+  { to: '/patient/nearby', label: 'Disease Alerts', icon: Map },
 ];
 
 export default function Layout({ children }) {
@@ -42,13 +45,13 @@ export default function Layout({ children }) {
               </Link>
             );
           })}
-          <Link to="/chat" className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-emerald-50"><MessageCircle size={18} /> AI Chatbot</Link>
+          <Link to="/chat" className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-emerald-50"><MessageCircle size={18} /> Chatbot</Link>
         </nav>
       </aside>
 
       <main className="flex-1 p-4 md:p-6 space-y-4">
         <div className="card px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-          <input className="w-full md:max-w-xl rounded-xl border border-emerald-100 px-3 py-2" placeholder="Search diseases, regions, alerts..." />
+          <input className="w-full md:max-w-xl rounded-xl border border-emerald-100 px-3 py-2" placeholder="Search patient, region, case status..." />
           <div className="flex gap-2 items-center text-sm">
             <div className="text-right">
               <p className="font-semibold">{user?.name}</p>
