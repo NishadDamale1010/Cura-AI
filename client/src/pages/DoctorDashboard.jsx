@@ -1,162 +1,267 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, CartesianGrid } from 'recharts';
-import { Brain, Siren, ShieldAlert, TrendingUp } from 'lucide-react';
-import api from '../services/api';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Legend,
+  Line,
+  LineChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { Activity, AlertTriangle, Brain, ShieldCheck, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
-const colors = ['#10b981', '#f59e0b', '#ef4444', '#3b82f6'];
+const PIE_COLORS = ['#ef4444', '#f59e0b', '#22c55e', '#3b82f6'];
+
+function formatNumber(value) {
+  return new Intl.NumberFormat('en-IN').format(Number(value || 0));
+}
+
+function riskClass(level) {
+  if (level === 'high') return 'bg-red-100 text-red-700 border-red-200';
+  if (level === 'medium') return 'bg-orange-100 text-orange-700 border-orange-200';
+  return 'bg-green-100 text-green-700 border-green-200';
+}
+
+function toDailySeries(trends = []) {
+  if (!trends.length) return [];
+  const sorted = [...trends].sort((a, b) => a.date.localeCompare(b.date));
+  return sorted.slice(-45).map((point, index) => {
+    if (index === 0) {
+      return {
+        date: point.date.slice(5),
+        totalCases: point.cases,
+        newCases: 0,
+      };
+    }
+
+    const previous = sorted.slice(-45)[index - 1];
+    return {
+      date: point.date.slice(5),
+      totalCases: point.cases,
+      newCases: Math.max(0, point.cases - previous.cases),
+    };
+  });
+}
 
 export default function DoctorDashboard() {
+  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
+  const [regions, setRegions] = useState([]);
   const [alerts, setAlerts] = useState([]);
-  const [records, setRecords] = useState([]);
-  const [sim, setSim] = useState({ region: 'Pune', symptoms: 'fever,cough', density: 7000 });
-  const [simResult, setSimResult] = useState(null);
-  const [environment, setEnvironment] = useState(null);
+  const [trendPayload, setTrendPayload] = useState(null);
+
+  const loadDashboard = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
+    try {
+      const [statsRes, regionsRes, alertsRes, trendsRes] = await Promise.all([
+        api.get('/api/stats'),
+        api.get('/api/regions'),
+        api.get('/api/alerts'),
+        api.get('/api/trends'),
+      ]);
+
+      setStats(statsRes.data);
+      setRegions(regionsRes.data.regions || []);
+      setAlerts(alertsRes.data.alerts || []);
+      setTrendPayload(trendsRes.data);
+    } catch (_error) {
+      toast.error('Unable to load surveillance dashboard data.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    Promise.all([api.get('/api/dashboard/stats'), api.get('/api/alerts'), api.get('/api/data/all'), api.get('/api/dashboard/environment', { params: { city: 'Pune' } })])
-      .then(([s, a, r, e]) => {
-        setStats(s.data);
-        setAlerts(a.data);
-        setRecords(r.data);
-        setEnvironment(e.data);
-      })
-      .catch(() => toast.error('Unable to load doctor dashboard'));
+    loadDashboard();
+    const interval = setInterval(() => loadDashboard({ silent: true }), 45000);
+    return () => clearInterval(interval);
   }, []);
+
+  const timeSeries = useMemo(() => toDailySeries(trendPayload?.trends || []), [trendPayload]);
+  const highRegions = useMemo(() => regions.filter((region) => region.riskLevel === 'high'), [regions]);
 
   const kpis = useMemo(() => {
     if (!stats) return [];
+
     return [
-      { label: 'Total Patients', value: stats.totalCases, trend: '+12%', icon: TrendingUp },
-      { label: 'Active Cases', value: Math.max(stats.totalCases - 4, 0), trend: '+3%', icon: Brain },
-      { label: 'Critical Alerts', value: stats.activeAlerts, trend: 'Urgent', icon: ShieldAlert, danger: true },
-      { label: 'AI Accuracy', value: `${stats.predictionAccuracy}%`, trend: '+1.8%', icon: Siren },
-      { label: 'Recovery Rate', value: '73%', trend: '+4.4%', icon: TrendingUp },
+      { label: 'Total Cases', value: formatNumber(stats.totalCases), icon: Activity, accent: 'text-blue-600' },
+      { label: 'Active Cases', value: formatNumber(stats.activeCases), icon: TrendingUp, accent: 'text-orange-600' },
+      { label: 'Critical Alerts', value: formatNumber(stats.criticalAlerts), icon: AlertTriangle, accent: 'text-red-600' },
+      { label: 'Recovery Rate', value: `${stats.recoveryRate}%`, icon: ShieldCheck, accent: 'text-green-600' },
+      { label: 'AI Confidence Score', value: `${stats.aiConfidenceScore}%`, icon: Brain, accent: 'text-purple-600' },
     ];
   }, [stats]);
 
-  const riskData = [
-    { name: 'Low', value: Math.max((stats?.totalCases || 1) - (stats?.highRiskRegions || 0) * 2, 1) },
-    { name: 'Medium', value: Math.max(stats?.highRiskRegions || 1, 1) },
-    { name: 'High', value: Math.max(stats?.activeAlerts || 1, 1) },
-  ];
-
-  const ageRisk = [
-    { age: '0-18', risk: 12 },
-    { age: '19-35', risk: 35 },
-    { age: '36-55', risk: 47 },
-    { age: '56+', risk: 28 },
-  ];
-
-  const simulate = () => {
-    const symptomsScore = sim.symptoms.toLowerCase().includes('fever') ? 0.25 : 0.1;
-    const densityScore = Math.min(Number(sim.density) / 10000, 0.5);
-    const riskPct = Math.round((symptomsScore + densityScore + 0.2) * 100);
-    setSimResult({
-      risk: `${riskPct}%`,
-      precautions: riskPct > 70 ? 'Deploy mobile clinics, issue local mask advisory, increase testing.' : 'Monitor and run awareness campaign.',
-    });
-  };
-
-  if (!stats) return <DashboardSkeleton />;
+  if (loading || !stats || !trendPayload) return <DashboardSkeleton />;
 
   return (
-    <div className="space-y-4 fade-in">
-      <div className="card p-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
-        <p className="font-semibold">🔥 AI Outbreak Prediction Banner</p>
-        <p className="text-sm">AI suggests possible outbreak in Pune in next 3 days (Confidence 84%).</p>
-      </div>
-
-
-      <div className="grid md:grid-cols-3 gap-3">
-        <div className="card p-4"><p className="text-sm text-slate-500">🌦 Temperature</p><p className="text-2xl font-bold">{environment?.weather?.temperature ?? '--'}°C</p><p className="text-xs text-slate-500">Humidity {environment?.weather?.humidity ?? '--'}%</p></div>
-        <div className="card p-4"><p className="text-sm text-slate-500">🌫 Air Quality (AQI)</p><p className="text-2xl font-bold">{environment?.aqi?.aqi ?? '--'}</p><p className="text-xs text-slate-500">{environment?.aqi?.level || 'Moderate'}</p></div>
-        <div className="card p-4"><p className="text-sm text-slate-500">Top Performance</p><div className="mt-2 h-20 w-20 rounded-full border-[10px] border-emerald-200 border-t-emerald-600 grid place-items-center font-bold">70%</div></div>
-      </div>
-
-      <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-3">
-        {kpis.map((k, i) => (
-          <motion.div key={k.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className={`metric-card ${k.danger ? 'border border-rose-200 bg-rose-50/70' : ''}`}>
-            <div className="flex items-center justify-between"><p className="text-sm text-slate-500">{k.label}</p><k.icon size={16} /></div>
-            <p className="text-3xl font-bold mt-2">{k.value}</p>
-            <p className="text-xs mt-1 text-emerald-700">{k.trend}</p>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="grid lg:grid-cols-2 gap-3">
-        <div className="card p-4 h-80"><h3 className="font-semibold mb-2">Cases over time</h3><ResponsiveContainer><LineChart data={stats.trends.map((x) => ({ day: x._id, cases: x.count }))}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="day" /><YAxis /><Tooltip /><Line dataKey="cases" stroke="#10b981" /></LineChart></ResponsiveContainer></div>
-        <div className="card p-4 h-80"><h3 className="font-semibold mb-2">Disease distribution</h3><ResponsiveContainer><PieChart><Pie data={riskData} dataKey="value" label>{riskData.map((e, i) => <Cell key={e.name} fill={colors[i]} />)}</Pie></PieChart></ResponsiveContainer></div>
-      </div>
-
-      <div className="grid lg:grid-cols-3 gap-3">
-        <div className="card p-4 h-72"><h3 className="font-semibold mb-2">Age Group vs Risk</h3><ResponsiveContainer><BarChart data={ageRisk}><XAxis dataKey="age" /><YAxis /><Tooltip /><Bar dataKey="risk" fill="#34d399" /></BarChart></ResponsiveContainer></div>
-        <div className="card p-4 lg:col-span-2">
-          <h3 className="font-semibold mb-2">Region-wise Heatmap</h3>
-          <div className="grid grid-cols-5 gap-2">
-            {['Pune', 'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Nashik', 'Nagpur', 'Jaipur', 'Surat', 'Indore'].map((r, i) => (
-              <button key={r} className={`rounded-xl p-3 text-xs text-white ${i % 3 === 0 ? 'bg-rose-500' : i % 2 ? 'bg-amber-500' : 'bg-emerald-500'}`}>{r}</button>
-            ))}
+    <div className="space-y-6">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">AI Health Surveillance Dashboard</p>
+            <h1 className="text-2xl font-bold text-slate-900">India Disease Intelligence Overview</h1>
+            <p className="mt-1 text-sm text-slate-600">Integrated real-time datasets from Indian Government Open Data Platform, IDSP, WHO GHO, and disease.sh.</p>
+          </div>
+          <div className="rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+            <p><span className="font-semibold">Last Updated:</span> {new Date(stats.lastUpdated).toLocaleString()}</p>
+            <p><span className="font-semibold">Data Source:</span> {stats.dataSource}</p>
+            <p><span className="font-semibold">Auto Refresh:</span> Every 45 seconds</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="grid lg:grid-cols-3 gap-3">
-        <div className="card p-4 lg:col-span-2">
-          <h3 className="font-semibold mb-2">Patient Case Manager (Live Feed)</h3>
-          <div className="max-h-64 overflow-auto space-y-2">
-            {records.slice(0, 8).map((r) => (
-              <div key={r._id} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 hover:bg-emerald-50 transition cursor-pointer">
-                <div>
-                  <p className="font-medium text-sm">{r.personalDetails?.name || 'Unknown'} • {r.location?.city}</p>
-                  <p className="text-xs text-slate-500">{r.diagnosis?.diseaseName || 'Awaiting diagnosis'} · {r.risk}</p>
-                </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${r.risk === 'High' ? 'bg-rose-100 text-rose-600' : r.risk === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>{r.risk}</span>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {kpis.map((kpi, index) => (
+          <motion.article
+            key={kpi.label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-slate-500">{kpi.label}</p>
+              <kpi.icon className={kpi.accent} size={18} />
+            </div>
+            <p className="mt-3 text-3xl font-semibold text-slate-900">{kpi.value}</p>
+          </motion.article>
+        ))}
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-3">
+        <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm xl:col-span-2">
+          <h3 className="mb-3 text-base font-semibold text-slate-900">Cases Over Time (Last 45 observations)</h3>
+          <div className="h-80">
+            <ResponsiveContainer>
+              <LineChart data={timeSeries}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="newCases" name="New Cases" stroke="#ef4444" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="totalCases" name="Total Cases" stroke="#2563eb" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </article>
+
+        <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h3 className="mb-3 text-base font-semibold text-slate-900">Disease Distribution</h3>
+          <div className="h-80">
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie data={trendPayload.diseaseDistribution || []} dataKey="cases" nameKey="disease" outerRadius={110} label>
+                  {(trendPayload.diseaseDistribution || []).map((item, idx) => (
+                    <Cell key={item.disease} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => formatNumber(value)} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </article>
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-3">
+        <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <h3 className="mb-3 text-base font-semibold text-slate-900">Age Group Risk Index</h3>
+          <div className="h-72">
+            <ResponsiveContainer>
+              <BarChart data={trendPayload.ageRisk || []}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <XAxis dataKey="ageGroup" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="riskIndex" fill="#f97316" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </article>
+
+        <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm xl:col-span-2">
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-base font-semibold text-slate-900">Region Risk Heatmap</h3>
+            <p className="text-xs text-slate-500">Red = High risk, Orange = Medium, Green = Safe</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+            {regions.slice(0, 12).map((region) => (
+              <div key={region.region} className={`rounded-xl border p-3 ${riskClass(region.riskLevel)}`}>
+                <p className="text-sm font-semibold">{region.region}</p>
+                <p className="text-xs">Active: {formatNumber(region.activeCases)}</p>
+                <p className="text-xs">Total: {formatNumber(region.totalCases)}</p>
               </div>
             ))}
-            {!records.length && <p className="text-sm text-slate-500">No patient cases found.</p>}
           </div>
-        </div>
+        </article>
+      </section>
 
-        <div className="card p-4">
-          <h3 className="font-semibold mb-2">AI Insights</h3>
-          <div className="space-y-2 text-sm">
-            <div className="p-2 rounded bg-emerald-50">🧠 Spike detected in flu cases (+28%) <span className="font-semibold">83% confidence</span></div>
-            <div className="p-2 rounded bg-amber-50">🧠 Possible outbreak in Pune in next 3 days <span className="font-semibold">84%</span></div>
-            <div className="p-2 rounded bg-rose-50">🧠 Critical humidity-driven cluster in Kothrud <span className="font-semibold">76%</span></div>
+      <section className="grid gap-4 xl:grid-cols-5">
+        <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm xl:col-span-3">
+          <h3 className="mb-3 text-base font-semibold text-slate-900">Live Outbreak Alerts (IDSP)</h3>
+          <div className="max-h-72 space-y-2 overflow-auto pr-1">
+            {alerts.length ? alerts.map((alert, idx) => (
+              <div key={`${alert.disease}-${idx}`} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                <div className="flex items-center justify-between">
+                  <p className="font-semibold text-slate-900">{alert.disease} · {alert.region}</p>
+                  <span className={`rounded-full border px-2 py-1 text-xs font-semibold ${riskClass(alert.severity)}`}>
+                    {alert.severity.toUpperCase()}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-slate-500">{new Date(alert.timestamp).toLocaleString()} · Source: {alert.source}</p>
+              </div>
+            )) : <p className="text-sm text-slate-600">No active alerts from upstream sources at this time.</p>}
           </div>
-        </div>
-      </div>
+        </article>
 
-      <div className="grid lg:grid-cols-2 gap-3">
-        <div className="card p-4">
-          <h3 className="font-semibold mb-2">Prediction Simulator</h3>
-          <div className="grid grid-cols-3 gap-2 text-sm">
-            <input className="border rounded p-2" placeholder="Region" value={sim.region} onChange={(e) => setSim({ ...sim, region: e.target.value })} />
-            <input className="border rounded p-2" placeholder="Symptoms" value={sim.symptoms} onChange={(e) => setSim({ ...sim, symptoms: e.target.value })} />
-            <input className="border rounded p-2" placeholder="Population density" value={sim.density} onChange={(e) => setSim({ ...sim, density: e.target.value })} />
+        <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm xl:col-span-2">
+          <h3 className="mb-3 text-base font-semibold text-slate-900">AI Insights</h3>
+          <div className="space-y-3">
+            {(trendPayload.insights || []).map((insight, idx) => (
+              <div key={`${insight.type}-${idx}`} className="rounded-xl border border-blue-100 bg-blue-50 p-3">
+                <p className="text-sm text-slate-800">{insight.message}</p>
+                <p className="mt-1 text-xs font-semibold text-blue-700">Confidence: {insight.confidence}%</p>
+              </div>
+            ))}
+            {!trendPayload.insights?.length && (
+              <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">No statistically significant anomalies detected in the latest run.</p>
+            )}
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
+              <p className="font-semibold text-slate-700">High Risk Regions: {highRegions.length}</p>
+              <p>WHO indicators analyzed: {trendPayload.who?.totalIndicatorsScanned || 0}</p>
+              <p>Government records loaded: {trendPayload.dataGov?.records?.length || 0}</p>
+            </div>
           </div>
-          <button onClick={simulate} className="mt-3 px-3 py-2 rounded bg-emerald-600 text-white">Simulate</button>
-          {simResult && <div className="mt-3 p-3 rounded bg-emerald-50 text-sm"><p>Predicted Risk: <b>{simResult.risk}</b></p><p>{simResult.precautions}</p></div>}
-        </div>
-
-        <div className="card p-4">
-          <h3 className="font-semibold mb-2">Live Alert Feed</h3>
-          <div className="space-y-2 max-h-48 overflow-auto">
-            {alerts.slice(0, 6).map((a) => <div key={a._id} className="p-2 rounded bg-rose-50 border border-rose-100 text-sm">{a.message}</div>)}
-          </div>
-        </div>
-      </div>
+        </article>
+      </section>
     </div>
   );
 }
 
 function DashboardSkeleton() {
   return (
-    <div className="grid md:grid-cols-3 gap-3">
-      {Array.from({ length: 6 }).map((_, i) => <div key={i} className="skeleton h-24" />)}
+    <div className="space-y-4">
+      <div className="h-24 animate-pulse rounded-2xl bg-slate-200" />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <div key={idx} className="h-28 animate-pulse rounded-2xl bg-slate-200" />
+        ))}
+      </div>
+      <div className="grid gap-4 xl:grid-cols-3">
+        <div className="h-80 animate-pulse rounded-2xl bg-slate-200 xl:col-span-2" />
+        <div className="h-80 animate-pulse rounded-2xl bg-slate-200" />
+      </div>
+      <div className="h-80 animate-pulse rounded-2xl bg-slate-200" />
     </div>
   );
 }
