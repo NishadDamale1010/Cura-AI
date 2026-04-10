@@ -28,11 +28,15 @@ exports.addRecord = async (req, res) => {
     const quality = await assessQuality(req.body, req.user.id);
 
     const weather = await fetchWeather(stdLocation.city);
+    // Use quality-filled vitals (with defaults applied) so stored data matches quality flags
+    const filledVitals = quality.filled.vitals || vitals;
+    const filledDurationDays = quality.filled.durationDays || durationDays;
+
     const symptomNames = symptoms.map((s) => (typeof s === 'string' ? s : s.name)).filter(Boolean).map((s) => s.toLowerCase());
 
     const prediction = await safePredict({
       symptoms: symptomNames,
-      temperature: vitals.bodyTemperature || weather.temperature,
+      temperature: filledVitals.bodyTemperature || weather.temperature,
       humidity: weather.humidity,
     });
 
@@ -56,16 +60,16 @@ exports.addRecord = async (req, res) => {
       lng: stdLocation.lng || weather.lng,
     };
 
-    const explanation = `Risk ${adjustedRisk}: symptoms ${symptomNames.join(', ') || 'none'} with temp ${vitals.bodyTemperature || weather.temperature}°C and humidity ${weather.humidity}%.`;
+    const explanation = `Risk ${adjustedRisk}: symptoms ${symptomNames.join(', ') || 'none'} with temp ${filledVitals.bodyTemperature || weather.temperature}°C and humidity ${weather.humidity}%.`;
 
     const record = await HealthRecord.create({
       userId: req.user.id,
       personalDetails,
       symptoms: symptoms.map((s) => (typeof s === 'string' ? { name: s, severity: 'Low' } : s)),
       location: normalizedLocation,
-      vitals,
+      vitals: filledVitals,
       humidity: weather.humidity,
-      durationDays,
+      durationDays: filledDurationDays,
       medicalReportUrl,
       risk: adjustedRisk,
       probability: adjustedProbability,

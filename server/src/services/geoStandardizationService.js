@@ -88,7 +88,11 @@ function standardizeLocation(location) {
   if (!location) return location;
   const result = { ...location };
   if (result.city) result.city = standardizeCity(result.city);
-  if (result.region) result.region = standardizeState(result.region) || standardizeCity(result.region) || result.region;
+  if (result.region) {
+    const stateStd = STATE_ALIASES[result.region.trim().toLowerCase()];
+    const cityStd = CITY_ALIASES[result.region.trim().toLowerCase()];
+    result.region = stateStd || cityStd || result.region.trim();
+  }
   if (result.city && (!result.lat || !result.lng)) {
     const coords = getCoordinates(result.city);
     if (coords) {

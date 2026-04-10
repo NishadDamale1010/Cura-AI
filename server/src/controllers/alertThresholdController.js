@@ -58,7 +58,7 @@ exports.updateThreshold = async (req, res) => {
     if (req.body.operator != null) updates.operator = req.body.operator;
     if (req.body.enabled != null) updates.enabled = req.body.enabled;
 
-    const threshold = await AlertThreshold.findByIdAndUpdate(id, { $set: updates }, { new: true });
+    const threshold = await AlertThreshold.findByIdAndUpdate(id, { $set: updates }, { new: true, runValidators: true });
     if (!threshold) return res.status(404).json({ message: 'Threshold not found' });
 
     await logAction({
