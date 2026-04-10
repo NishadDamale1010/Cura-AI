@@ -96,7 +96,7 @@ export default function DoctorReports() {
                     <p className="text-xs text-slate-500 mt-0.5">Temp {r.vitals?.bodyTemperature || '-'}°C | SpO2 {r.vitals?.spo2 || '-'} | HR {r.vitals?.heartRate || '-'}</p>
                   </td>
                   <td className="py-3 px-2">
-                    <span className={`badge ${r.risk === 'high' ? 'badge-rose' : r.risk === 'medium' ? 'badge-amber' : 'badge-green'}`}>{r.risk}</span>
+                    <span className={`badge ${(r.risk || '').toLowerCase() === 'high' ? 'badge-rose' : (r.risk || '').toLowerCase() === 'medium' ? 'badge-amber' : 'badge-green'}`}>{r.risk}</span>
                   </td>
                   <td className="py-3 px-2"><DiagnosisEditor record={r} onSave={saveDiagnosis} /></td>
                 </tr>
