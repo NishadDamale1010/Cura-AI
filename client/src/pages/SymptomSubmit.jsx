@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { PlusCircle, Thermometer, Heart, Wind, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import Card from '../components/ui/Card';
 
 const symptomList = ['Fever', 'Cough', 'Fatigue', 'Headache', 'Breathing Issues', 'Body Pain'];
 const toOptionalNumber = (value) => {
@@ -159,6 +160,6 @@ export default function SymptomSubmit() {
         </motion.div>
       )}
       {result && <DiseasePrediction result={result} />}
-    </motion.div>
+    </div>
   );
 }
