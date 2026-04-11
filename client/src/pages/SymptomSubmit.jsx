@@ -4,6 +4,11 @@ import { PlusCircle, Thermometer, Heart, Wind, Send } from 'lucide-react';
 import api from '../services/api';
 
 const symptomList = ['Fever', 'Cough', 'Fatigue', 'Headache', 'Breathing Issues', 'Body Pain'];
+const toOptionalNumber = (value) => {
+  if (value === '' || value == null) return undefined;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : undefined;
+};
 
 export default function SymptomSubmit() {
   const [form, setForm] = useState({
@@ -31,7 +36,7 @@ export default function SymptomSubmit() {
     const payload = {
       personalDetails: {
         name: form.name,
-        age: Number(form.age),
+        age: toOptionalNumber(form.age),
         gender: form.gender,
         city: form.city,
         area: form.area,
@@ -40,11 +45,11 @@ export default function SymptomSubmit() {
       location: { city: form.city, area: form.area, pincode: form.pincode, region: form.region || form.city },
       symptoms,
       vitals: {
-        bodyTemperature: Number(form.bodyTemperature),
-        spo2: Number(form.spo2),
-        heartRate: Number(form.heartRate),
+        bodyTemperature: toOptionalNumber(form.bodyTemperature),
+        spo2: toOptionalNumber(form.spo2),
+        heartRate: toOptionalNumber(form.heartRate),
       },
-      durationDays: Number(form.durationDays || 0),
+      durationDays: toOptionalNumber(form.durationDays) ?? 0,
       medicalReportUrl: form.medicalReportUrl,
     };
 
@@ -53,7 +58,9 @@ export default function SymptomSubmit() {
       setResult(data);
       setError('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to submit record');
+      const backendErrors = err.response?.data?.errors;
+      const normalized = Array.isArray(backendErrors) ? ` (${backendErrors.join(', ')})` : '';
+      setError((err.userMessage || err.response?.data?.message || 'Failed to submit record') + normalized);
     }
   };
 
