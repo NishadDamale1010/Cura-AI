@@ -117,6 +117,25 @@ function runLocalPrediction(payload = {}) {
   };
 }
 
+async function fetchLegacyHealthbotAdvice({ symptoms = [], risk = 'Low', probability = 0 }) {
+  let axiosClient = null;
+  try {
+    // eslint-disable-next-line global-require
+    axiosClient = require('axios');
+  } catch (_error) {
+    return '';
+  }
+
+  const base = process.env.LEGACY_HEALTHBOT_URL || 'https://healthbot-k1ha.onrender.com';
+  const prompt = `User risk is ${risk} (${Math.round(probability * 100)}%). Symptoms: ${symptoms.join(', ') || 'none'}. Give one short preventive action.`;
+  try {
+    const { data } = await axiosClient.post(base, { message: prompt }, { timeout: 2500 });
+    return data?.reply || data?.response || '';
+  } catch (_error) {
+    return '';
+  }
+}
+
 async function getPrediction(payload) {
   const url = process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000/predict';
   let axiosClient = null;
@@ -130,12 +149,24 @@ async function getPrediction(payload) {
 
   try {
     const { data } = await axiosClient.post(url, payload, { timeout: 5000 });
+    const advice = await fetchLegacyHealthbotAdvice({
+      symptoms: payload?.symptoms || [],
+      risk: data?.risk || 'Low',
+      probability: Number(data?.probability || 0),
+    });
     return {
       ...data,
       model: data.model || 'external-ai-service',
+      advice,
     };
   } catch (_error) {
-    return runLocalPrediction(payload);
+    const local = runLocalPrediction(payload);
+    const advice = await fetchLegacyHealthbotAdvice({
+      symptoms: payload?.symptoms || [],
+      risk: local.risk,
+      probability: local.probability,
+    });
+    return { ...local, advice };
   }
 }
 

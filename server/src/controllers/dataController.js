@@ -60,7 +60,8 @@ exports.addRecord = async (req, res) => {
       lng: stdLocation.lng || weather.lng,
     };
 
-    const explanation = `Risk ${adjustedRisk}: symptoms ${symptomNames.join(', ') || 'none'} with temp ${filledVitals.bodyTemperature || weather.temperature}°C and humidity ${weather.humidity}%.`;
+    const baseExplanation = `Risk ${adjustedRisk}: symptoms ${symptomNames.join(', ') || 'none'} with temp ${filledVitals.bodyTemperature || weather.temperature}°C and humidity ${weather.humidity}%.`;
+    const explanation = prediction.advice ? `${baseExplanation} HealthBot: ${prediction.advice}` : baseExplanation;
 
     const record = await HealthRecord.create({
       userId: req.user.id,
