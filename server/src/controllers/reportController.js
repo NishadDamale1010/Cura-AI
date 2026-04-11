@@ -91,36 +91,119 @@ exports.createOrUpdateMonthlyReport = async (req, res) => {
 
 exports.analyzeReport = async (req, res) => {
   try {
-    const { reportText = '', tags = [], highFever = false, lowSpo2 = false, respiratoryDistress = false } = req.body || {};
+    const {
+      reportText = '',
+      tags = [],
+      highFever = false,
+      lowSpo2 = false,
+      respiratoryDistress = false,
+      notes = '',
+    } = req.body || {};
 
-    const normalized = String(reportText).toLowerCase();
+    const text = (String(reportText) + ' ' + String(notes)).toLowerCase();
+    const tagList = Array.isArray(tags) ? tags.map((t) => String(t).toLowerCase()) : [];
+
     const findings = [];
+    let riskScore = 10;
 
-    if (highFever || /fever|pyrexia/.test(normalized)) findings.push('High fever markers detected.');
-    if (lowSpo2 || /spo2|oxygen|hypoxia/.test(normalized)) findings.push('Possible oxygen desaturation risk.');
-    if (respiratoryDistress || /wheez|breath|respirat/.test(normalized)) findings.push('Respiratory stress indicators present.');
-    if (/platelet/.test(normalized)) findings.push('Platelet mention detected; monitor for dengue/viral risk.');
+    // Fever signals
+    if (highFever || /fever|pyrexia|hyperthermia|high temperature|38\./.test(text)) {
+      findings.push({ icon: '🌡️', label: 'Elevated Temperature Markers', detail: 'Fever indicators detected. May signal bacterial or viral infection.', severity: 'high' });
+      riskScore += 18;
+    }
 
-    const riskScore = Math.min(100, 20
-      + (findings.length * 15)
-      + (Array.isArray(tags) ? tags.length * 5 : 0)
-      + (highFever ? 10 : 0)
-      + (lowSpo2 ? 20 : 0)
-      + (respiratoryDistress ? 15 : 0));
+    // Oxygen saturation
+    if (lowSpo2 || /spo2|oxygen saturation|hypoxia|o2.*%|low.*oxygen/.test(text)) {
+      findings.push({ icon: '💨', label: 'Oxygen Desaturation Risk', detail: 'SpO2 / hypoxia markers found. Respiratory function may be compromised.', severity: 'high' });
+      riskScore += 22;
+    }
+
+    // Respiratory
+    if (respiratoryDistress || /wheez|shortness of breath|dyspnea|respirat|tachypnea|chest.*tightn/.test(text)) {
+      findings.push({ icon: '🫁', label: 'Respiratory Stress Indicators', detail: 'Respiratory distress signals present. Evaluate for pneumonia or bronchitis.', severity: 'high' });
+      riskScore += 18;
+    }
+
+    // Dengue/platelet
+    if (/platelet|dengue|thrombocytopenia|platelet.*low|plt/.test(text)) {
+      findings.push({ icon: '🦟', label: 'Possible Vector-Borne Risk', detail: 'Platelet decline detected. Evaluate for Dengue or other vector-borne illness.', severity: 'medium' });
+      riskScore += 14;
+    }
+
+    // Malaria
+    if (/malaria|plasmodium|anemia|hemoglobin.*low/.test(text)) {
+      findings.push({ icon: '🔴', label: 'Malaria / Anemia Indicators', detail: 'Haemoglobin / malaria-related terms found in report.', severity: 'medium' });
+      riskScore += 12;
+    }
+
+    // Infection / WBC
+    if (/wbc|white blood cell|leukocytosis|leukopenia|infection|sepsis|bacterial/.test(text)) {
+      findings.push({ icon: '🧫', label: 'Inflammatory / Infection Markers', detail: 'WBC count / sepsis indicators found. Possible active systemic infection.', severity: 'medium' });
+      riskScore += 12;
+    }
+
+    // Cholesterol / Cardiac
+    if (/cholesterol|ldl|hdl|triglycerides|cardiac|ecg|troponin|arrhythmia/.test(text)) {
+      findings.push({ icon: '❤️', label: 'Cardiovascular Markers', detail: 'Cardiac or lipid markers detected. Recommend lipid panel / cardiology follow-up.', severity: 'medium' });
+      riskScore += 8;
+    }
+
+    // Blood sugar / Diabetes
+    if (/glucose|blood sugar|hba1c|diabetes|hyperglycemia|insulin/.test(text)) {
+      findings.push({ icon: '🩸', label: 'Glucose / Diabetes Markers', detail: 'Blood glucose / HbA1c markers found. Endocrinology review recommended.', severity: 'low' });
+      riskScore += 8;
+    }
+
+    // Liver
+    if (/sgpt|sgot|alt|ast|bilirubin|liver|hepatitis|jaundice/.test(text)) {
+      findings.push({ icon: '🟡', label: 'Liver Function Markers', detail: 'Elevated liver enzymes or bilirubin detected. Hepatic evaluation recommended.', severity: 'medium' });
+      riskScore += 10;
+    }
+
+    // Kidney
+    if (/creatinine|urea|kidney|renal|egfr|bun/.test(text)) {
+      findings.push({ icon: '🫘', label: 'Renal Function Markers', detail: 'Kidney function markers detected. Monitor renal output closely.', severity: 'medium' });
+      riskScore += 8;
+    }
+
+    // Tag-based boost
+    riskScore += Math.min(15, tagList.length * 4);
+
+    riskScore = Math.min(100, Math.max(5, Math.round(riskScore)));
 
     const riskLevel = riskScore >= 70 ? 'High' : riskScore >= 45 ? 'Moderate' : 'Low';
 
+    // Differential diagnosis hints
+    const differentials = [];
+    if (findings.some((f) => /dengue|vector/.test(f.label.toLowerCase()))) differentials.push('Dengue Fever');
+    if (findings.some((f) => /respiratory/.test(f.label.toLowerCase()))) differentials.push('Acute Respiratory Infection');
+    if (findings.some((f) => /malaria|anemia/.test(f.label.toLowerCase()))) differentials.push('Malaria / Anaemia');
+    if (findings.some((f) => /cardiac/.test(f.label.toLowerCase()))) differentials.push('Cardiovascular Disease');
+    if (findings.some((f) => /glucose|diabetes/.test(f.label.toLowerCase()))) differentials.push('Diabetes Mellitus');
+    if (findings.some((f) => /liver/.test(f.label.toLowerCase()))) differentials.push('Hepatic Dysfunction');
+    if (findings.some((f) => /renal|kidney/.test(f.label.toLowerCase()))) differentials.push('Chronic Kidney Disease');
+    if (findings.some((f) => /infection|bacterial/.test(f.label.toLowerCase()))) differentials.push('Systemic Infection / Sepsis');
+    if (!differentials.length) differentials.push('No specific differential identified from report text');
+
     const actions = [
-      riskScore >= 70 ? 'Escalate to physician review within 6 hours.' : 'Continue monitoring and schedule doctor follow-up.',
-      'Correlate report findings with local outbreak trend dashboard.',
-      'Push personalized precautions to patient app.',
+      riskScore >= 70
+        ? '🚨 Escalate to physician review within 6 hours.'
+        : riskScore >= 45
+        ? '⚠️ Schedule doctor follow-up within 48 hours.'
+        : '✅ Routine monitoring. Follow up with doctor within 1 week.',
+      '📊 Correlate report findings with outbreak trend dashboard.',
+      '💊 Review current medications against detected markers.',
+      '📱 Personalized health precautions pushed to patient account.',
     ];
 
     return res.status(200).json({
       riskScore,
       riskLevel,
       findings,
+      differentials,
       actions,
+      totalSignals: findings.length,
+      analysisDepth: findings.length >= 4 ? 'Deep' : findings.length >= 2 ? 'Standard' : 'Basic',
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
