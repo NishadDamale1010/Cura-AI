@@ -45,125 +45,136 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="min-h-screen md:flex bg-slate-50/50">
+    <div className="min-h-screen md:flex relative font-sans z-0 selection:bg-cyan-500/30">
+      {/* 3D Animated Background Primative */}
+      <div className="mesh-bg z-[-1] pointer-events-none"></div>
+
       {/* Mobile overlay */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden" onClick={() => setMobileOpen(false)} />
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden" onClick={() => setMobileOpen(false)} />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
+      {/* Floating Glass Sidebar */}
       <aside className={`
-        fixed md:sticky top-0 left-0 z-50 h-screen
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
-        ${collapsed ? 'md:w-[72px]' : 'md:w-64'} w-64
-        bg-white border-r border-slate-100
-        transition-all duration-300 ease-in-out flex flex-col shadow-sm
+        fixed md:sticky top-4 left-4 z-50 h-[calc(100vh-2rem)]
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-[120%]'} md:translate-x-0
+        ${collapsed ? 'md:w-[80px]' : 'md:w-[260px]'} w-[260px]
+        glass-panel
+        transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] flex flex-col shadow-soft-lg md:mx-4
       `}>
         {/* Logo */}
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-5 border-b border-white/40 flex items-center justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="h-10 w-10 min-w-[40px] rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white grid place-items-center shadow-md">
-              <ShieldCheck size={20} />
+            <div className="h-10 w-10 min-w-[40px] rounded-[14px] bg-gradient-to-br from-cyan-400 to-blue-600 text-white grid place-items-center shadow-glow-cyan">
+              <ShieldCheck size={22} fill="white" className="text-blue-600" />
             </div>
             {!collapsed && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="whitespace-nowrap">
-                <h1 className="font-bold text-slate-800 tracking-tight">Cura<span className="text-cyan-500">AI</span></h1>
-                <p className="text-[11px] text-slate-400 font-medium">Health Surveillance</p>
+                <h1 className="font-extrabold text-xl font-display tracking-tight text-slate-800">Cura<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-500">AI</span></h1>
+                <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Intelligence</p>
               </motion.div>
             )}
           </div>
-          <button className="hidden md:flex items-center justify-center h-7 w-7 rounded-lg hover:bg-slate-100 text-slate-400 transition-colors" onClick={() => setCollapsed((v) => !v)}>
-            {collapsed ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+          <button className="hidden md:flex items-center justify-center h-7 w-7 rounded-full hover:bg-white/50 text-slate-400 transition-colors shadow-sm border border-white/50" onClick={() => setCollapsed((v) => !v)}>
+             {collapsed ? <ChevronRight size={14} strokeWidth={3} /> : <ChevronLeft size={14} strokeWidth={3} />}
           </button>
-          <button className="md:hidden text-slate-400" onClick={() => setMobileOpen(false)}><X size={18} /></button>
+          <button className="md:hidden text-slate-400 hover:text-slate-700 bg-white/50 rounded-full p-1" onClick={() => setMobileOpen(false)}><X size={18} /></button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-auto p-3 space-y-1">
+        <nav className="flex-1 overflow-x-hidden overflow-y-auto p-4 space-y-1.5 custom-scrollbar">
           {nav.map((item) => {
             const Icon = item.icon;
-            const active = location.pathname === item.to;
+            const active = location.pathname.startsWith(item.to);
             return (
               <Link key={item.to} to={item.to} onClick={() => setMobileOpen(false)}
-                className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 relative
-                  ${active ? 'bg-gradient-to-r from-cyan-50 to-blue-50 text-cyan-700 shadow-sm' : 'text-slate-600 hover:bg-slate-50 hover:text-cyan-600'}
+                className={`group flex items-center gap-3.5 px-3 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 relative font-display tracking-wide
+                  ${active ? 'text-white shadow-glow-cyan' : 'text-slate-500 hover:bg-white/50 hover:text-cyan-600'}
                   ${collapsed ? 'justify-center' : ''}`}
               >
                 {active && (
-                  <motion.div layoutId="activeNav" className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-cyan-500"
+                  <motion.div layoutId="activeNavBubble" className="absolute inset-0 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500"
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }} />
                 )}
-                <Icon size={18} className={`min-w-[18px] transition-colors ${active ? 'text-cyan-600' : 'text-slate-400 group-hover:text-cyan-500'}`} />
-                {!collapsed && <span>{item.label}</span>}
+                <div className={`relative z-10 flex items-center justify-center ${active ? 'text-white' : ''}`}>
+                  <Icon size={20} strokeWidth={active ? 2.5 : 2} className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`} />
+                </div>
+                {!collapsed && <span className="relative z-10 leading-none">{item.label}</span>}
               </Link>
             );
           })}
         </nav>
 
         {/* User section */}
-        <div className="p-3 border-t border-slate-100">
+        <div className="p-4 border-t border-white/40 mt-auto">
           {collapsed ? (
-            <div className="flex flex-col items-center gap-2 py-1">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 text-white grid place-items-center text-xs font-bold shadow-sm">
+            <div className="flex flex-col items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-500 text-white grid place-items-center text-sm font-black shadow-glow-cyan">
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
-              <button onClick={handleLogout} className="h-8 w-8 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500 grid place-items-center transition-colors" title="Logout">
-                <LogOut size={15} />
+              <button onClick={handleLogout} className="h-10 w-10 rounded-2xl hover:bg-rose-500 hover:text-white hover:shadow-glow-violet text-slate-400 grid place-items-center transition-all duration-300" title="Logout">
+                <LogOut size={18} />
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-3 px-3 py-2">
-              <div className="h-8 w-8 min-w-[32px] rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 text-white grid place-items-center text-xs font-bold shadow-sm">
+            <div className="flex items-center gap-3 p-2 bg-white/40 border border-white/60 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+              <div className="h-10 w-10 min-w-[40px] rounded-[14px] bg-gradient-to-br from-cyan-400 to-blue-600 text-white grid place-items-center text-sm font-black shadow-glow-cyan">
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-700 truncate">{user?.name}</p>
-                <p className="text-[11px] text-cyan-600 capitalize">{user?.role}</p>
+                <p className="text-sm font-bold text-slate-800 truncate font-display">{user?.name}</p>
+                <p className="text-[10px] uppercase tracking-widest font-bold text-cyan-600">{user?.role}</p>
               </div>
-              <button onClick={handleLogout} className="h-8 w-8 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500 grid place-items-center transition-colors" title="Logout">
-                <LogOut size={15} />
+              <button onClick={handleLogout} className="h-9 w-9 rounded-xl hover:bg-rose-500 hover:text-white text-slate-400 grid place-items-center transition-all duration-300 group" title="Logout">
+                <LogOut size={16} className="group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
           )}
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="flex-1 min-h-screen md:p-6 p-4">
-        {/* Top bar */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-4 py-3 mb-6 flex items-center justify-between gap-3">
+      {/* Main content wrapper */}
+      <main className="flex-1 min-h-screen md:p-6 p-4 flex flex-col md:max-w-[calc(100vw-310px)] relative z-10 w-full overflow-hidden">
+        {/* Floating Topbar */}
+        <div className="glass-panel px-5 py-3.5 mb-6 flex items-center justify-between gap-4 sticky top-4 z-40 lg:top-0 lg:mt-2 lg:mx-1">
           <div className="flex items-center gap-3 flex-1">
-            <button className="md:hidden h-9 w-9 rounded-xl bg-cyan-50 text-cyan-600 grid place-items-center" onClick={() => setMobileOpen(true)}>
-              <Menu size={18} />
+            <button className="md:hidden h-10 w-10 rounded-xl bg-white/50 text-slate-600 grid place-items-center hover:bg-white shadow-soft" onClick={() => setMobileOpen(true)}>
+              <Menu size={20} />
             </button>
-            <div className="relative flex-1 max-w-md">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input className="w-full bg-slate-50 border border-slate-100 rounded-xl pl-10 pr-4 py-2 text-sm outline-none placeholder-slate-400 transition-all focus:border-cyan-300 focus:ring-2 focus:ring-cyan-100 focus:bg-white"
-                placeholder="Search patients, regions, outbreaks..." />
+            <div className="relative flex-1 max-w-xl group">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
+              <input className="w-full bg-white/40 border border-white/60 rounded-2xl pl-11 pr-4 py-2.5 text-sm font-medium outline-none placeholder-slate-400 transition-all focus:border-cyan-300 focus:ring-4 focus:ring-cyan-500/10 focus:bg-white shadow-inner hover:bg-white/60"
+                placeholder="Search medical records, patients, active outbreaks..." />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="relative h-9 w-9 rounded-xl hover:bg-slate-50 grid place-items-center text-slate-500 transition-colors">
-              <Bell size={18} />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
+          <div className="flex items-center gap-3">
+            <button className="relative h-10 w-10 rounded-2xl hover:bg-white hover:shadow-soft grid place-items-center text-slate-500 transition-all border border-transparent hover:border-white/60 group">
+              <Bell size={20} className="group-hover:text-cyan-600 transition-colors" />
+              <span className="absolute top-2 right-2 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-white animate-pulse" />
             </button>
-            <div className="hidden md:flex items-center gap-2 pl-2 border-l border-slate-100">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 text-white grid place-items-center text-xs font-bold shadow-sm">
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-              </div>
+            <div className="hidden md:flex items-center gap-3 pl-4 border-l border-slate-300/30">
               <div className="text-right">
-                <p className="text-sm font-semibold text-slate-700">{user?.name}</p>
-                <p className="text-[11px] text-cyan-600 capitalize">{user?.role}</p>
+                <p className="text-sm font-bold text-slate-800 font-display">{user?.name}</p>
+                <p className="text-[10px] uppercase tracking-widest font-bold text-cyan-600">{user?.role}</p>
+              </div>
+              <div className="h-10 w-10 rounded-[14px] bg-gradient-to-br from-cyan-400 to-blue-500 text-white grid place-items-center text-sm font-black shadow-glow-cyan border-[3px] border-white/40 hover:scale-105 transition-transform cursor-pointer">
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Page content */}
-        <motion.div key={location.pathname} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}>
+        {/* Page content wrapper with floating animation */}
+        <motion.div 
+          key={location.pathname} 
+          initial={{ opacity: 0, y: 15, scale: 0.99 }} 
+          animate={{ opacity: 1, y: 0, scale: 1 }} 
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="flex-1 w-full"
+        >
           {children}
         </motion.div>
       </main>

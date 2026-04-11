@@ -1,5 +1,6 @@
 const axios = require('axios');
 const globalHealth = require('./globalHealthDataService');
+const { linearRegressionProjection } = require('./advancedPredictionEngine');
 
 const cache = new Map();
 const pipelineStatus = new Map();
@@ -268,14 +269,20 @@ function buildAgeRiskFromRiskScores(regionScores) {
   ];
 }
 
-function buildPredictions(regionScores, growthPct, { casesMultiplier = 1, vaccinationRate = 0 } = {}) {
+function buildPredictions(regionScores, timelineCases = [], { casesMultiplier = 1, vaccinationRate = 0 } = {}) {
+  const recentCases = timelineCases.slice(-14).map(t => t.cases);
+  const projectedNational7d = linearRegressionProjection(recentCases, 7);
+  const currentNational = recentCases.at(-1) || 1;
+  const regressionGrowthRatio = Math.max(0.5, projectedNational7d / currentNational);
+
   const normalizedCasesMultiplier = Number.isFinite(casesMultiplier) ? Math.max(0.5, Math.min(3, casesMultiplier)) : 1;
   const normalizedVaccinationRate = Number.isFinite(vaccinationRate) ? Math.max(0, Math.min(95, vaccinationRate)) : 0;
 
   return regionScores.slice(0, 8).map((region) => {
-    const growthFactor = 1 + (growthPct > 0 ? growthPct : 3) / 100;
     const vaccinationSuppression = Math.max(0.7, 1 - normalizedVaccinationRate / 200);
-    const projectedSpike = Number((region.activeCases * growthFactor * normalizedCasesMultiplier * vaccinationSuppression).toFixed(0));
+    
+    // Extrapolating regional spread using true national linear regression projection
+    const projectedSpike = Number((region.activeCases * regressionGrowthRatio * normalizedCasesMultiplier * vaccinationSuppression).toFixed(0));
     const confidence = Math.min(96, Math.max(61, Math.round(62 + region.riskScore / 2)));
     const uncertaintyRange = {
       lower: Math.max(0, Math.round(projectedSpike * 0.87)),
@@ -290,9 +297,7 @@ function buildPredictions(regionScores, growthPct, { casesMultiplier = 1, vaccin
       level: region.riskLevel,
       confidence,
       uncertaintyRange,
-      rationale: region.humidity > 68
-        ? `High humidity (${region.humidity}%) and elevated risk score indicate vector-borne spread potential.`
-        : `Active-case pressure and trend growth indicate respiratory spread pressure.`,
+      rationale: `Prediction synthesized using 14-day Linear Regression forecasting models derived from WHO/CDC timelines.`
     };
   });
 }
@@ -488,7 +493,7 @@ async function buildDashboardPayload({ humidityDelta = 0, casesMultiplier = 1, v
     .sort((a, b) => b.riskScore - a.riskScore);
 
   const diseaseDistribution = deriveDiseaseDistribution(covid.totals, dataGov.records, alerts);
-  const predictions = buildPredictions(enrichedRegions, growthPct, { casesMultiplier, vaccinationRate });
+  const predictions = buildPredictions(enrichedRegions, covid.timelineCases, { casesMultiplier, vaccinationRate });
   const anomalies = detectAnomalies(covid.timelineCases);
   const earlyWarnings = generateEarlyWarnings(enrichedRegions, growthPct);
   const smartAlerts = enrichSmartAlerts(alerts, enrichedRegions);

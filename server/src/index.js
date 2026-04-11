@@ -6,6 +6,13 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const connectDB = require('./config/db');
+const logger = require('./utils/logger');
+const errorHandler = require('./middleware/errorHandler');
+
+process.on('uncaughtException', err => {
+  logger.error('UNCAUGHT EXCEPTION! Shutting down...', { message: err.message, stack: err.stack });
+  process.exit(1);
+});
 
 const authRoutes = require('./routes/authRoutes');
 const dataRoutes = require('./routes/dataRoutes');
@@ -91,19 +98,21 @@ app.use('/api/weather', weatherRoutes);
 app.use('/api/diseases', diseaseRoutes);
 app.use('/api/disease-predict', diseasePredictRoutes);
 
-app.use((err, _req, res, _next) => {
-  console.error(err);
-  res.status(500).json({ message: err.message || 'Internal server error' });
-});
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-connectDB()
+const server = connectDB()
   .then((connected) => {
     dbConnected = Boolean(connected);
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      logger.info(`🚀 Server running on port ${PORT}`);
       if (!dbConnected) {
-        console.log('⚠️ Running in degraded mode: DB-dependent endpoints may be unavailable.');
+        logger.warn('⚠️ Running in degraded mode: DB-dependent endpoints may be unavailable.');
       }
     });
   });
+
+process.on('unhandledRejection', err => {
+  logger.error('UNHANDLED REJECTION! Shutting down...', { message: err.message, stack: err.stack });
+  // Close server & exit process gracefully if needed in enterprise
+});

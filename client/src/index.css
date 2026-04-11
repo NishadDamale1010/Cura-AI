@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,31 +8,91 @@
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  @apply text-slate-800 antialiased;
-  background: #f8fafc;
+  @apply text-slate-800 antialiased overflow-x-hidden;
+  background-color: #f8fafc;
   min-height: 100vh;
+}
+
+/* --- Typographical Overrides --- */
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: 'Outfit', 'Poppins', system-ui, sans-serif;
+}
+
+/* --- Animated Mesh Gradient Background --- */
+.mesh-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  background-color: #f1f5f9;
+  overflow: hidden;
+}
+
+.mesh-bg::before, .mesh-bg::after, .mesh-blob {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.5;
+  animation: blob 12s infinite ease-in-out alternate;
+}
+
+.mesh-bg::before {
+  background: #cffafe; /* Cyan 100 */
+  width: 50vw;
+  height: 50vw;
+  top: -10vh;
+  left: -10vw;
+  animation-delay: 0s;
+}
+
+.mesh-bg::after {
+  background: #ede9fe; /* Violet 100 */
+  width: 45vw;
+  height: 45vw;
+  bottom: -10vh;
+  right: -5vw;
+  animation-delay: 3s;
+}
+
+.mesh-blob {
+  background: #dbeafe; /* Blue 100 */
+  width: 35vw;
+  height: 35vw;
+  top: 30vh;
+  left: 40vw;
+  animation-delay: 6s;
 }
 
 /* --- Glass & Card Primitives --- */
 .glass {
-  @apply bg-white/80 backdrop-blur-xl border border-slate-100 shadow-sm;
+  @apply bg-white/70 backdrop-blur-2xl border border-white/60 shadow-glass transition-all duration-300;
+}
+.glass-panel {
+  @apply bg-white/80 backdrop-blur-xl border border-white/50 shadow-glass rounded-3xl transition-all duration-300;
 }
 
 .card {
-  @apply bg-white rounded-2xl border border-slate-100 shadow-sm transition-all duration-300;
+  @apply bg-white/90 backdrop-blur-md rounded-2xl border border-white/40 shadow-soft transition-all duration-300;
 }
 .card:hover {
-  @apply shadow-md;
+  @apply shadow-glass-hover -translate-y-[2px] bg-white/95;
 }
 
 .metric-card {
-  @apply card p-5 relative overflow-hidden;
+  @apply card p-5 relative overflow-hidden group;
 }
 .metric-card::before {
   content: '';
-  @apply absolute top-0 right-0 w-20 h-20 rounded-full opacity-[0.04];
+  @apply absolute top-0 right-0 w-32 h-32 rounded-full opacity-[0.03] transition-transform duration-700 ease-out;
   background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
   transform: translate(30%, -30%);
+}
+.metric-card:hover::before {
+  transform: translate(10%, -10%) scale(1.5);
+  opacity: 0.08;
 }
 
 /* --- Skeleton --- */
@@ -49,24 +107,13 @@ body {
   100% { background-position: -200% 0; }
 }
 
-/* --- Soft Pulse --- */
-.soft-pulse { animation: softPulse 2.5s ease-in-out infinite; }
-@keyframes softPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.25); }
-  50% { box-shadow: 0 0 0 12px rgba(6, 182, 212, 0); }
-}
-
 /* --- Fade In --- */
 .fade-in { animation: fadeIn 0.5s ease-out both; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 /* --- Stagger children fade-in --- */
 .stagger-children > * {
   opacity: 0;
-  animation: fadeIn 0.4s ease-out forwards;
+  animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
 .stagger-children > *:nth-child(2) { animation-delay: 0.10s; }
@@ -77,59 +124,50 @@ body {
 
 /* --- Input Styles --- */
 .input-field {
-  @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700
-    placeholder-slate-400 outline-none transition-all duration-200;
+  @apply w-full rounded-xl border border-slate-200/80 bg-white/60 backdrop-blur-sm px-4 py-3 text-sm text-slate-700
+    placeholder-slate-400 outline-none transition-all duration-300 shadow-inner;
 }
 .input-field:focus {
-  @apply border-cyan-400 ring-2 ring-cyan-100 shadow-sm;
+  @apply border-cyan-400 ring-4 ring-cyan-500/10 bg-white shadow-soft;
 }
 
-/* --- Button Styles --- */
+/* --- Premium Buttons --- */
 .btn-primary {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500
-    px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200;
+  @apply relative inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600
+    px-6 py-2.5 text-sm font-semibold text-white shadow-glow-cyan transition-all duration-300 overflow-hidden font-display;
+}
+.btn-primary::before {
+  content: '';
+  @apply absolute inset-0 bg-white/20 translate-y-full transition-transform duration-300;
 }
 .btn-primary:hover {
-  @apply from-cyan-600 to-blue-600 shadow-md -translate-y-0.5;
+  @apply shadow-lg -translate-y-0.5;
+}
+.btn-primary:hover::before {
+  @apply translate-y-0;
 }
 .btn-primary:active {
-  @apply translate-y-0 shadow-sm;
+  @apply translate-y-0 shadow-sm transition-none;
 }
 
 .btn-outline {
-  @apply inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white
-    px-4 py-2.5 text-sm font-medium text-slate-700 transition-all duration-200;
-}
-.btn-outline:hover {
-  @apply bg-slate-50 border-cyan-300 shadow-sm;
+  @apply inline-flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white/80 backdrop-blur-sm
+    px-5 py-2.5 text-sm font-semibold text-slate-700 transition-all duration-300 hover:border-cyan-300 hover:bg-slate-50 hover:text-cyan-700 hover:shadow-soft font-display;
 }
 
-/* --- Section Title --- */
-.section-title {
-  @apply text-2xl font-bold text-slate-800;
-}
-.section-subtitle {
-  @apply text-sm text-slate-500 mt-1;
-}
-
-/* --- Badge --- */
+/* --- Badges --- */
 .badge {
-  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider font-display border;
 }
-.badge-green { @apply bg-emerald-50 text-emerald-700 border border-emerald-200/60; }
-.badge-amber { @apply bg-amber-50 text-amber-700 border border-amber-200/60; }
-.badge-rose { @apply bg-rose-50 text-rose-700 border border-rose-200/60; }
+.badge-green { @apply bg-emerald-500/10 text-emerald-600 border-emerald-500/20 shadow-sm; }
+.badge-amber { @apply bg-amber-500/10 text-amber-600 border-amber-500/20 shadow-sm; }
+.badge-rose { @apply bg-rose-500/10 text-rose-600 border-rose-500/20 shadow-sm; }
 
-/* --- Leaflet --- */
-.leaflet-container { width: 100%; height: 100%; border-radius: 1rem; }
-
-/* --- Scrollbar --- */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* --- Custom Scrollbar --- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { @apply bg-slate-200 rounded-full; }
-::-webkit-scrollbar-thumb:hover { @apply bg-slate-300; }
+::-webkit-scrollbar-thumb { @apply bg-slate-300/60 rounded-full border border-solid border-transparent bg-clip-content; }
+::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
 
-/* --- Page Wrapper --- */
-.page-wrapper {
-  @apply space-y-5;
-}
+/* --- Specific Components overrides --- */
+.leaflet-container { width: 100%; height: 100%; border-radius: 1.25rem; z-index: 10; }
