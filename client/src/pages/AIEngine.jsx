@@ -105,6 +105,7 @@ export default function AIEngine() {
         <div className="text-xs text-slate-500 flex items-center gap-2">
           <RefreshCcw size={14} /> live refresh every 30s
         </div>
+        <span className="text-xs text-slate-400 flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100"><RefreshCcw size={12} /> Live refresh 30s</span>
       </motion.div>
 
       {error ? <div className="card p-4 text-red-600 text-sm">{error}</div> : null}
