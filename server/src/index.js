@@ -30,6 +30,7 @@ const dataQualityRoutes = require('./routes/dataQualityRoutes');
 const weatherRoutes = require('./routes/weatherRoutes');
 const diseaseRoutes = require('./routes/diseaseRoutes');
 const diseasePredictRoutes = require('./routes/diseasePredictRoutes');
+const analyzeReportMockRoutes = require('./routes/analyzeReportMockRoutes');
 
 dotenv.config();
 const app = express();
@@ -90,6 +91,7 @@ app.use('/api/quality', dataQualityRoutes);
 app.use('/api/weather', weatherRoutes);
 app.use('/api/diseases', diseaseRoutes);
 app.use('/api/disease-predict', diseasePredictRoutes);
+app.use('/api/analyze-report', analyzeReportMockRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

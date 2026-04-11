@@ -16,8 +16,7 @@ export default function Register() {
     setLoading(true);
     try {
       await register(form);
-      toast.success('Account created successfully!');
-      navigate('/');
+      navigate('/home');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed');
     } finally {

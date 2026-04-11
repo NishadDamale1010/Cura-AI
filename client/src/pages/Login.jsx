@@ -16,8 +16,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login(form);
-      toast.success('Welcome back!');
-      navigate('/');
+      navigate('/home');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Login failed');
     } finally {
