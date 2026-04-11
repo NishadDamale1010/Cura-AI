@@ -19,6 +19,7 @@ import MedicalUploads from './pages/MedicalUploads';
 import AIEngine from './pages/AIEngine';
 import HealthBotIntegration from './pages/HealthBotIntegration';
 import DoctorPatientChat from './pages/DoctorPatientChat';
+import DiseasePrediction from './pages/DiseasePrediction';
 
 const ProtectedLayout = ({ children }) => (
   <ProtectedRoute>
@@ -44,12 +45,14 @@ export default function App() {
       <Route path="/doctor/alerts" element={<ProtectedLayout><DoctorAlerts /></ProtectedLayout>} />
       <Route path="/doctor/map" element={<ProtectedLayout><DoctorMap /></ProtectedLayout>} />
       <Route path="/doctor/ai-engine" element={<ProtectedLayout><AIEngine /></ProtectedLayout>} />
+      <Route path="/doctor/disease-predict" element={<ProtectedLayout><DiseasePrediction /></ProtectedLayout>} />
 
       <Route path="/patient/dashboard" element={<ProtectedLayout><PatientDashboard /></ProtectedLayout>} />
       <Route path="/patient/submit" element={<ProtectedLayout><SymptomSubmit /></ProtectedLayout>} />
       <Route path="/patient/vitals" element={<ProtectedLayout><VitalsPage /></ProtectedLayout>} />
       <Route path="/patient/uploads" element={<ProtectedLayout><MedicalUploads /></ProtectedLayout>} />
       <Route path="/patient/nearby" element={<ProtectedLayout><NearbyRisk /></ProtectedLayout>} />
+      <Route path="/patient/disease-predict" element={<ProtectedLayout><DiseasePrediction /></ProtectedLayout>} />
 
       <Route path="/chat" element={<ProtectedLayout><ChatbotPage /></ProtectedLayout>} />
       <Route path="/messages" element={<ProtectedLayout><DoctorPatientChat /></ProtectedLayout>} />
