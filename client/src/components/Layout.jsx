@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Activity, AlertTriangle, BrainCircuit, Bot, ChevronLeft, ChevronRight,
   ClipboardList, HeartPulse, LogOut, Map, Menu, MessageCircle,
@@ -34,9 +34,15 @@ const patientNav = [
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const nav = user?.role === 'doctor' ? doctorNav : patientNav;
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="min-h-screen md:flex bg-slate-50/50">
@@ -104,7 +110,7 @@ export default function Layout({ children }) {
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 text-white grid place-items-center text-xs font-bold shadow-sm">
                 {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
-              <button onClick={logout} className="h-8 w-8 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500 grid place-items-center transition-colors" title="Logout">
+              <button onClick={handleLogout} className="h-8 w-8 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500 grid place-items-center transition-colors" title="Logout">
                 <LogOut size={15} />
               </button>
             </div>
@@ -117,7 +123,7 @@ export default function Layout({ children }) {
                 <p className="text-sm font-semibold text-slate-700 truncate">{user?.name}</p>
                 <p className="text-[11px] text-cyan-600 capitalize">{user?.role}</p>
               </div>
-              <button onClick={logout} className="h-8 w-8 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500 grid place-items-center transition-colors" title="Logout">
+              <button onClick={handleLogout} className="h-8 w-8 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-500 grid place-items-center transition-colors" title="Logout">
                 <LogOut size={15} />
               </button>
             </div>
