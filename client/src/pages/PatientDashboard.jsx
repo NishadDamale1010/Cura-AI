@@ -35,20 +35,6 @@ const outbreakZones = [
   { name: 'Kharadi', risk: 'Low', top: '30%', left: '75%', color: '#22c55e' },
 ];
 
-const healthTips = [
-  { icon: Droplets, text: 'Drink clean and filtered water', color: 'bg-blue-100 text-blue-600' },
-  { icon: ShieldCheck, text: 'Use mosquito repellents', color: 'bg-rose-100 text-rose-600' },
-  { icon: Heart, text: 'Maintain hygiene and wash hands', color: 'bg-emerald-100 text-emerald-600' },
-  { icon: Wind, text: 'Avoid stagnant water areas', color: 'bg-amber-100 text-amber-600' },
-];
-
-const quickActions = [
-  { icon: Stethoscope, label: 'Book\nAppointment', to: '/patient/submit', color: 'bg-blue-50 text-blue-600 border-blue-100' },
-  { icon: Upload, label: 'Upload\nReports', to: '/patient/uploads', color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
-  { icon: Phone, label: 'Contact\nDoctor', to: '/messages', color: 'bg-violet-50 text-violet-600 border-violet-100' },
-  { icon: Siren, label: 'Emergency\nSOS', to: '/patient/nearby', color: 'bg-rose-50 text-rose-600 border-rose-100' },
-];
-
 export default function PatientDashboard() {
   const { user } = useAuth();
   const [alerts, setAlerts] = useState([]);
