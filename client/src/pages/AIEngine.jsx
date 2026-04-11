@@ -18,6 +18,7 @@ function asChartRows(predictions = []) {
   return predictions.slice(0, 8).map((item, idx) => ({
     day: `D+${idx + 1}`,
     region: item.region,
+    disease: item.disease || 'Unknown',
     projected: item.predictedActiveCases7d,
     lower: item.uncertaintyRange?.lower ?? 0,
     upper: item.uncertaintyRange?.upper ?? 0,
@@ -81,6 +82,14 @@ export default function AIEngine() {
 
   const forecastRows = useMemo(() => asChartRows(predictions), [predictions]);
   const riskHotspots = useMemo(() => regions.slice(0, 6), [regions]);
+  const diseaseLabels = useMemo(() => {
+    const counts = {};
+    predictions.forEach((p) => {
+      const key = p.disease || 'Unknown';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, count]) => ({ name, count }));
+  }, [predictions]);
   const analyzeReport = async () => {
     try {
       const { data } = await api.post('/api/reports/analyze', { reportText });
@@ -121,12 +130,20 @@ export default function AIEngine() {
       <div className="grid lg:grid-cols-2 gap-4">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="card p-5 h-80">
           <h3 className="font-semibold text-slate-800 mb-3 flex items-center gap-2"><Waves size={16} /> Trend + Forecast Graph</h3>
+          <div className="mb-2 flex flex-wrap gap-2">
+            {diseaseLabels.map((item) => (
+              <span key={item.name} className="text-[11px] rounded-full bg-emerald-50 border border-emerald-100 px-2 py-1 text-emerald-700">
+                {item.name}: {item.count}
+              </span>
+            ))}
+            {!diseaseLabels.length && <span className="text-[11px] text-slate-500">No disease labels yet</span>}
+          </div>
           <ResponsiveContainer>
             <LineChart data={forecastRows}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="day" stroke="#94a3b8" />
               <YAxis stroke="#94a3b8" />
-              <Tooltip />
+              <Tooltip formatter={(value, _name, context) => [value, context?.payload?.disease || 'Predicted']} />
               <Line dataKey="projected" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} />
               <Line dataKey="lower" stroke="#10b981" strokeWidth={1.5} dot={false} />
               <Line dataKey="upper" stroke="#ef4444" strokeWidth={1.5} dot={false} />

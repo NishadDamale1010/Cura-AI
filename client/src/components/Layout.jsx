@@ -6,7 +6,7 @@ import {
   LayoutDashboard, TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const doctorNav = [
@@ -37,9 +37,37 @@ export default function Layout({ children }) {
   const nav = user?.role === 'doctor' ? doctorNav : patientNav;
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  useEffect(() => {
+    const key = `curaai_first_visit_${user?.role || 'user'}`;
+    const seen = localStorage.getItem(key);
+    if (!seen) {
+      setShowWelcome(true);
+      localStorage.setItem(key, '1');
+    }
+  }, [user?.role]);
 
   return (
-    <div className="min-h-screen md:flex bg-slate-50/50">
+    <div className="min-h-screen md:flex">
+      <AnimatePresence>
+        {showWelcome && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[70] bg-black/35 backdrop-blur-sm p-4 grid place-items-center">
+            <motion.div initial={{ scale: 0.94, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, opacity: 0 }} className="w-full max-w-md rounded-2xl bg-white p-5 shadow-soft-lg border border-emerald-100">
+              <h3 className="text-lg font-semibold text-slate-800">Welcome to CuraAI 👋</h3>
+              <p className="text-sm text-slate-600 mt-2">
+                This quick tour appears only once. Start with Dashboard, then use AI Engine for prediction labels and outbreak insights.
+              </p>
+              <div className="mt-4 flex justify-end">
+                <button type="button" onClick={() => setShowWelcome(false)} className="rounded-xl bg-emerald-600 text-white px-4 py-2 text-sm">
+                  Got it
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Mobile overlay */}
       <AnimatePresence>
         {mobileOpen && (
