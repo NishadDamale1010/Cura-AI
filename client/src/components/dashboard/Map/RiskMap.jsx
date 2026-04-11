@@ -8,8 +8,8 @@ const points = [
 
 export default function RiskMap() {
   return (
-    <div className="dashboard-glass rounded-2xl p-4">
-      <h3 className="font-semibold dashboard-text mb-3">Interactive Map</h3>
+    <div className="bg-white rounded-2xl border border-emerald-100/50 shadow-card p-4">
+      <h3 className="font-semibold text-slate-800 mb-3">Interactive Map</h3>
       <div className="relative h-56 rounded-2xl overflow-hidden border border-white/10 bg-[url('https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1400&q=60')] bg-cover bg-center">
         <div className="absolute inset-0 bg-slate-900/45" />
         {points.map((point, i) => (
