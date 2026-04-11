@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import Card from '../components/ui/Card';
 
 const asArray = (v) => (Array.isArray(v) ? v : []);
 
@@ -48,12 +48,6 @@ const quickActions = [
   { icon: Phone, label: 'Contact\nDoctor', to: '/messages', color: 'bg-violet-50 text-violet-600 border-violet-100' },
   { icon: Siren, label: 'Emergency\nSOS', to: '/patient/nearby', color: 'bg-rose-50 text-rose-600 border-rose-100' },
 ];
-
-const Card = ({ children, className = '' }) => (
-  <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-300 ${className}`}>
-    {children}
-  </div>
-);
 
 export default function PatientDashboard() {
   const { user } = useAuth();
