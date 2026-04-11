@@ -25,8 +25,11 @@ export default function MedicalUploads() {
   const submit = async (e) => {
     e.preventDefault();
     if (!selected) return;
-    if (selected.size > 10 * 1024 * 1024) { toast.error('File exceeds 10MB upload limit'); return; }
-    setStatus({ loading: true, error: '' });
+    if (selected.size > 10 * 1024 * 1024) {
+      setStatus({ loading: false, error: 'File exceeds 10MB upload limit.', message: '' });
+      return;
+    }
+    setStatus({ loading: true, error: '', message: '' });
     try {
       const form = new FormData();
       form.append('file', selected); form.append('notes', notes); form.append('tags', tags);
@@ -36,9 +39,7 @@ export default function MedicalUploads() {
       setStatus({ loading: false, error: '' });
       toast.success('Report uploaded successfully');
     } catch (err) {
-      const msg = err.userMessage || err.response?.data?.message || 'Upload failed';
-      setStatus({ loading: false, error: msg });
-      toast.error(msg);
+      setStatus({ loading: false, error: err.userMessage || err.response?.data?.message || 'Upload failed', message: '' });
     }
   };
 

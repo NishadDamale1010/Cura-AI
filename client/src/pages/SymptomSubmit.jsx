@@ -11,10 +11,6 @@ const toOptionalNumber = (value) => {
   return Number.isFinite(n) ? n : undefined;
 };
 
-const Card = ({ children, className = '' }) => (
-  <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm ${className}`}>{children}</div>
-);
-
 export default function SymptomSubmit() {
   const [form, setForm] = useState({
     name: '', age: '', gender: 'Male', city: '', area: '', pincode: '',
@@ -39,10 +35,21 @@ export default function SymptomSubmit() {
   const submit = async (e) => {
     e.preventDefault();
     const payload = {
-      personalDetails: { name: form.name, age: toOptionalNumber(form.age), gender: form.gender, city: form.city, area: form.area, pincode: form.pincode },
+      personalDetails: {
+        name: form.name,
+        age: toOptionalNumber(form.age),
+        gender: form.gender,
+        city: form.city,
+        area: form.area,
+        pincode: form.pincode,
+      },
       location: { city: form.city, area: form.area, pincode: form.pincode, region: form.region || form.city },
       symptoms,
-      vitals: { bodyTemperature: toOptionalNumber(form.bodyTemperature), spo2: toOptionalNumber(form.spo2), heartRate: toOptionalNumber(form.heartRate) },
+      vitals: {
+        bodyTemperature: toOptionalNumber(form.bodyTemperature),
+        spo2: toOptionalNumber(form.spo2),
+        heartRate: toOptionalNumber(form.heartRate),
+      },
       durationDays: toOptionalNumber(form.durationDays) ?? 0,
       medicalReportUrl: form.medicalReportUrl,
     };
@@ -54,9 +61,7 @@ export default function SymptomSubmit() {
     } catch (err) {
       const backendErrors = err.response?.data?.errors;
       const normalized = Array.isArray(backendErrors) ? ` (${backendErrors.join(', ')})` : '';
-      const msg = (err.userMessage || err.response?.data?.message || 'Failed to submit record') + normalized;
-      setError(msg);
-      toast.error(msg);
+      setError((err.userMessage || err.response?.data?.message || 'Failed to submit record') + normalized);
     }
   };
 
