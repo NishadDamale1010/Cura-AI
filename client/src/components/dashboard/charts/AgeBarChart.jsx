@@ -2,8 +2,8 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 
 export default function AgeBarChart({ data }) {
   return (
-    <div className="dashboard-glass rounded-2xl p-4">
-      <h3 className="font-semibold dashboard-text mb-3">Age Distribution</h3>
+    <div className="bg-white rounded-2xl border border-emerald-100/50 shadow-card p-4">
+      <h3 className="font-semibold text-slate-800 mb-3">Age Distribution</h3>
       <div className="h-56">
         <ResponsiveContainer>
           <BarChart data={data}>
