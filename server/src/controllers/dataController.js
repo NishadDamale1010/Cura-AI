@@ -60,9 +60,10 @@ exports.addRecord = async (req, res) => {
       lng: stdLocation.lng || weather.lng,
     };
 
-    const explanation = `Risk ${adjustedRisk}: symptoms ${symptomNames.join(', ') || 'none'} with temp ${filledVitals.bodyTemperature || weather.temperature}°C and humidity ${weather.humidity}%.`;
+    const baseExplanation = `Risk ${adjustedRisk}: symptoms ${symptomNames.join(', ') || 'none'} with temp ${filledVitals.bodyTemperature || weather.temperature}°C and humidity ${weather.humidity}%.`;
+    const explanation = prediction.advice ? `${baseExplanation} HealthBot: ${prediction.advice}` : baseExplanation;
 
-    const record = await HealthRecord.create({
+    const payload = {
       userId: req.user.id,
       personalDetails,
       symptoms: symptoms.map((s) => (typeof s === 'string' ? { name: s, severity: 'Low' } : s)),
@@ -74,32 +75,46 @@ exports.addRecord = async (req, res) => {
       risk: adjustedRisk,
       probability: adjustedProbability,
       explanation,
-    });
+    };
 
-    if (adjustedRisk === 'High') {
-      await Alert.create({
-        location: `${normalizedLocation.city}, ${normalizedLocation.area || normalizedLocation.region}`,
-        message: `Spike detected: high-risk case reported from ${normalizedLocation.city}.`,
-        risk: 'High',
-        recordId: record._id,
+    try {
+      const record = await HealthRecord.create(payload);
+
+      if (adjustedRisk === 'High') {
+        await Alert.create({
+          location: `${normalizedLocation.city}, ${normalizedLocation.area || normalizedLocation.region}`,
+          message: `Spike detected: high-risk case reported from ${normalizedLocation.city}.`,
+          risk: 'High',
+          recordId: record._id,
+        });
+      }
+
+      // Feature 1: Log data quality
+      await logQuality(record._id, quality.qualityScore, quality.flags, quality.validationPassed);
+
+      // Feature 5: Audit log
+      await logAction({
+        action: 'data_ingestion',
+        userId: req.user.id,
+        resourceType: 'HealthRecord',
+        resourceId: record._id,
+        details: { qualityScore: quality.qualityScore, risk: adjustedRisk },
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+
+      return res.status(201).json({ ...record.toObject(), qualityScore: quality.qualityScore, qualityFlags: quality.flags });
+    } catch (dbError) {
+      return res.status(202).json({
+        ...payload,
+        _id: `degraded-${Date.now()}`,
+        qualityScore: quality.qualityScore,
+        qualityFlags: quality.flags,
+        saved: false,
+        warning: 'Database unavailable. Prediction generated but record not persisted.',
+        error: dbError.message,
       });
     }
-
-    // Feature 1: Log data quality
-    await logQuality(record._id, quality.qualityScore, quality.flags, quality.validationPassed);
-
-    // Feature 5: Audit log
-    await logAction({
-      action: 'data_ingestion',
-      userId: req.user.id,
-      resourceType: 'HealthRecord',
-      resourceId: record._id,
-      details: { qualityScore: quality.qualityScore, risk: adjustedRisk },
-      ip: req.ip,
-      userAgent: req.headers['user-agent'],
-    });
-
-    return res.status(201).json({ ...record.toObject(), qualityScore: quality.qualityScore, qualityFlags: quality.flags });
   } catch (error) {
     return res.status(500).json({ message: 'Failed to add data' });
   }
