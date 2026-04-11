@@ -26,6 +26,10 @@ export default function MedicalUploads() {
   const submit = async (e) => {
     e.preventDefault();
     if (!selected) return;
+    if (selected.size > 10 * 1024 * 1024) {
+      setStatus({ loading: false, error: 'File exceeds 10MB upload limit.', message: '' });
+      return;
+    }
     setStatus({ loading: true, error: '', message: '' });
     try {
       const form = new FormData();
@@ -41,7 +45,7 @@ export default function MedicalUploads() {
       await loadReports();
       setStatus({ loading: false, error: '', message: 'Report uploaded successfully.' });
     } catch (err) {
-      setStatus({ loading: false, error: err.response?.data?.message || 'Upload failed', message: '' });
+      setStatus({ loading: false, error: err.userMessage || err.response?.data?.message || 'Upload failed', message: '' });
     }
   };
 

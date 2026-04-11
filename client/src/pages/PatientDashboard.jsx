@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, Send, Heart, Activity, Thermometer, Wind, ChevronRight, Sparkles } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import Card from '../components/ui/Card';
 
 const asArray = (v) => Array.isArray(v) ? v : [];
 
@@ -34,11 +35,6 @@ const VitalPill = ({ icon: Icon, label, value, color }) => {
     </div>
   );
 };
-
-const Card = ({ children, className = '' }) => (
-  <div className={`rounded-2xl border border-emerald-100/50 bg-white shadow-card transition-all duration-300 hover:shadow-card-hover ${className}`}>{children}</div>
-);
-
 
 export default function PatientDashboard() {
   const [records, setRecords] = useState([]);
