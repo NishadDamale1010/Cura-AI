@@ -5,6 +5,7 @@ import {
   Shield, Users, Building2, Siren, FileText, ChevronRight
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import {
   AreaChart, Area, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -259,7 +260,10 @@ export default function DoctorDashboard() {
             {commandActions.map((action) => {
               const AIcon = action.icon;
               return (
-                <button key={action.label} className={`flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r ${action.color} text-white hover:shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}>
+                <button 
+                  key={action.label} 
+                  onClick={() => toast.success(`Action Executed: ${action.label}`)}
+                  className={`flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r ${action.color} text-white hover:shadow-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}>
                   <div className="h-10 w-10 rounded-xl bg-white/20 grid place-items-center"><AIcon size={18} /></div>
                   <span className="text-sm font-medium">{action.label}</span>
                   <ChevronRight size={16} className="ml-auto opacity-70" />

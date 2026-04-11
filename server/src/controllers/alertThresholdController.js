@@ -53,10 +53,29 @@ exports.updateThreshold = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = {};
+    const validMetrics = ['case_count', 'growth_rate', 'incidence_rate', 'cfr'];
+    const validOps = ['gt', 'gte', 'lt', 'lte', 'eq'];
+
     if (req.body.name != null) updates.name = req.body.name;
     if (req.body.value != null) updates.value = Number(req.body.value);
-    if (req.body.operator != null) updates.operator = req.body.operator;
+    
+    if (req.body.metric != null) {
+      if (!validMetrics.includes(req.body.metric)) {
+        return res.status(400).json({ message: `metric must be one of: ${validMetrics.join(', ')}` });
+      }
+      updates.metric = req.body.metric;
+    }
+
+    if (req.body.operator != null) {
+      if (!validOps.includes(req.body.operator)) {
+        return res.status(400).json({ message: `operator must be one of: ${validOps.join(', ')}` });
+      }
+      updates.operator = req.body.operator;
+    }
+
     if (req.body.enabled != null) updates.enabled = req.body.enabled;
+    if (req.body.region != null) updates.region = req.body.region;
+    if (req.body.disease != null) updates.disease = req.body.disease;
 
     const threshold = await AlertThreshold.findByIdAndUpdate(id, { $set: updates }, { new: true, runValidators: true });
     if (!threshold) return res.status(404).json({ message: 'Threshold not found' });

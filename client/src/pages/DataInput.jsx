@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 
 const symptomOptions = ['fever', 'cough', 'headache', 'fatigue', 'breathlessness'];
 
@@ -26,6 +27,13 @@ export default function DataInput() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.symptoms.length === 0) {
+      return toast.error("Please select at least one symptom");
+    }
+    if (!form.city) {
+      return toast.error("City is required");
+    }
+
     const payload = {
       symptoms: form.symptoms,
       location: {
@@ -40,8 +48,14 @@ export default function DataInput() {
       },
     };
 
-    const { data } = await api.post('/api/data/add', payload);
-    setResult(data.prediction);
+    try {
+      const { data } = await api.post('/api/data/add', payload);
+      setResult(data.prediction || data);
+      toast.success("Data submitted successfully!");
+    } catch (err) {
+      const msg = err.response?.data?.message || "Failed to submit data";
+      toast.error(msg);
+    }
   };
 
   return (

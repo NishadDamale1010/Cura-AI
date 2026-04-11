@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 import FloatingChatWidget from './components/FloatingChatWidget';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import LandingPage from './pages/LandingPage';
 import DoctorDashboard from './pages/DoctorDashboard';
 import DoctorReports from './pages/DoctorReports';
 import DoctorAlerts from './pages/DoctorAlerts';
@@ -30,15 +31,18 @@ const ProtectedLayout = ({ children }) => (
 
 function RoleHome() {
   const { user } = useAuth();
-  const home = useMemo(() => (user?.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard'), [user]);
+  if (!user) return <Navigate to="/login" replace />;
+  const home = useMemo(() => (user.role === 'doctor' ? '/doctor/dashboard' : '/patient/dashboard'), [user]);
   return <Navigate to={home} replace />;
 }
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/dashboard" element={<RoleHome />} />
 
       <Route path="/doctor/dashboard" element={<ProtectedLayout><DoctorDashboard /></ProtectedLayout>} />
       <Route path="/doctor/reports" element={<ProtectedLayout><DoctorReports /></ProtectedLayout>} />
@@ -57,7 +61,7 @@ export default function App() {
       <Route path="/chat" element={<ProtectedLayout><ChatbotPage /></ProtectedLayout>} />
       <Route path="/messages" element={<ProtectedLayout><DoctorPatientChat /></ProtectedLayout>} />
       <Route path="/healthbot" element={<ProtectedLayout><HealthBotIntegration /></ProtectedLayout>} />
-      <Route path="/" element={<RoleHome />} />
+      
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
