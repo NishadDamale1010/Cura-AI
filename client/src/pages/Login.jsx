@@ -16,7 +16,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login(form);
-      navigate('/');
+      navigate('/home');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     } finally {
