@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Activity, AlertTriangle, BrainCircuit, Bot, ChevronLeft, ChevronRight, ClipboardList, HeartPulse, LogOut, Map, Menu, MessageCircle, PlusCircle, Search, ShieldCheck, Upload, Bell, X } from 'lucide-react';
+import { Activity, AlertTriangle, BrainCircuit, Bot, ChevronLeft, ChevronRight, ClipboardList, HeartPulse, LogOut, Map, Menu, MessageCircle, PlusCircle, Search, ShieldCheck, Stethoscope, Upload, Bell, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +10,7 @@ const doctorNav = [
   { to: '/doctor/map', label: 'Risk Map', icon: Map },
   { to: '/doctor/alerts', label: 'Alerts', icon: AlertTriangle },
   { to: '/doctor/ai-engine', label: 'AI Engine', icon: BrainCircuit },
+  { to: '/doctor/disease-predict', label: 'Disease Predict', icon: Stethoscope },
   { to: '/healthbot', label: 'HealthBot', icon: Bot },
   { to: '/messages', label: 'Messages', icon: MessageCircle },
 ];
@@ -20,6 +21,7 @@ const patientNav = [
   { to: '/patient/vitals', label: 'Vitals', icon: HeartPulse },
   { to: '/patient/uploads', label: 'Uploads', icon: Upload },
   { to: '/patient/nearby', label: 'Nearby Risk', icon: Map },
+  { to: '/patient/disease-predict', label: 'Disease Predict', icon: Stethoscope },
   { to: '/healthbot', label: 'HealthBot', icon: Bot },
   { to: '/messages', label: 'Messages', icon: MessageCircle },
 ];
