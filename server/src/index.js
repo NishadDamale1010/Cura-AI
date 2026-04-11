@@ -32,6 +32,7 @@ const diseaseRoutes = require('./routes/diseaseRoutes');
 
 dotenv.config();
 const app = express();
+let dbConnected = false;
 
 app.set('trust proxy', 1);
 app.use(helmet());
@@ -59,7 +60,11 @@ app.use(morgan('dev'));
 app.use(rateLimit({ windowMs: 60 * 1000, max: 120 }));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-app.get('/healthz', (_req, res) => res.json({ ok: true, service: 'cura-ai-server' }));
+app.get('/healthz', (_req, res) => res.json({
+  ok: true,
+  service: 'cura-ai-server',
+  database: dbConnected ? 'connected' : 'degraded',
+}));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
@@ -91,10 +96,12 @@ app.use((err, _req, res, _next) => {
 
 const PORT = process.env.PORT || 5000;
 connectDB()
-  .then(() => {
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-  })
-  .catch((error) => {
-    console.error('DB connection failed:', error.message);
-    process.exit(1);
+  .then((connected) => {
+    dbConnected = Boolean(connected);
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+      if (!dbConnected) {
+        console.log('⚠️ Running in degraded mode: DB-dependent endpoints may be unavailable.');
+      }
+    });
   });
