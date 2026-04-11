@@ -19,6 +19,7 @@ import MedicalUploads from './pages/MedicalUploads';
 import AIEngine from './pages/AIEngine';
 import HealthBotIntegration from './pages/HealthBotIntegration';
 import DoctorPatientChat from './pages/DoctorPatientChat';
+import LandingPage from './pages/LandingPage';
 
 const ProtectedLayout = ({ children }) => (
   <ProtectedRoute>
@@ -54,7 +55,8 @@ export default function App() {
       <Route path="/chat" element={<ProtectedLayout><ChatbotPage /></ProtectedLayout>} />
       <Route path="/messages" element={<ProtectedLayout><DoctorPatientChat /></ProtectedLayout>} />
       <Route path="/healthbot" element={<ProtectedLayout><HealthBotIntegration /></ProtectedLayout>} />
-      <Route path="/" element={<RoleHome />} />
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/home" element={<RoleHome />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
