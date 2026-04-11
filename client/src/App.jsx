@@ -17,6 +17,7 @@ import ChatbotPage from './pages/ChatbotPage';
 import VitalsPage from './pages/VitalsPage';
 import MedicalUploads from './pages/MedicalUploads';
 import AIEngine from './pages/AIEngine';
+import DiseasePrediction from './pages/DiseasePrediction';
 import HealthBotIntegration from './pages/HealthBotIntegration';
 import DoctorPatientChat from './pages/DoctorPatientChat';
 import LandingPage from './pages/LandingPage';
