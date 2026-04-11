@@ -3,10 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ShieldCheck, Mail, Lock, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -14,9 +14,15 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try { await login(form); navigate('/'); }
-    catch (err) { setError(err.response?.data?.message || 'Login failed'); }
-    finally { setLoading(false); }
+    try {
+      await login(form);
+      toast.success('Welcome back!');
+      navigate('/');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -37,17 +43,16 @@ export default function Login() {
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
               <div className="relative">
                 <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input type="email" className="input-field pl-10" placeholder="you@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <input type="email" className="input-field pl-10" placeholder="you@example.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
               </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input type="password" className="input-field pl-10" placeholder="Enter your password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                <input type="password" className="input-field pl-10" placeholder="Enter your password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
               </div>
             </div>
-            {error && <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="text-sm text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-2.5">{error}</motion.div>}
             <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-base disabled:opacity-60">
               {loading ? <span className="flex items-center gap-2"><span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Signing in...</span>
                 : <span className="flex items-center gap-2">Sign in <ArrowRight size={16} /></span>}
