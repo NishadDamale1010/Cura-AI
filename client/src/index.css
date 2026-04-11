@@ -82,7 +82,7 @@ h1, h2, h3, h4, h5, h6, .font-display {
 }
 
 .metric-card {
-  @apply card p-5 relative overflow-hidden group;
+  @apply card p-5 relative overflow-hidden;
 }
 .metric-card::before {
   content: '';
