@@ -466,13 +466,13 @@ export default function DiseasePrediction() {
             </h3>
             <div className="space-y-2.5">
               {[
-                { step: '1', text: 'Enter patient clinical data', color: 'emerald' },
-                { step: '2', text: 'Data is normalized using trained scaler', color: 'blue' },
-                { step: '3', text: 'SVM classifier predicts disease risk', color: 'violet' },
-                { step: '4', text: 'Results with confidence & medical advice', color: 'amber' },
+                { step: '1', text: 'Enter patient clinical data', cls: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
+                { step: '2', text: 'Data is normalized using trained scaler', cls: 'bg-blue-50 text-blue-600 border-blue-200' },
+                { step: '3', text: 'SVM classifier predicts disease risk', cls: 'bg-violet-50 text-violet-600 border-violet-200' },
+                { step: '4', text: 'Results with confidence & medical advice', cls: 'bg-amber-50 text-amber-600 border-amber-200' },
               ].map((s) => (
                 <div key={s.step} className="flex items-center gap-3">
-                  <div className={`h-7 w-7 rounded-lg bg-${s.color}-50 text-${s.color}-600 grid place-items-center text-xs font-bold border border-${s.color}-200`}>
+                  <div className={`h-7 w-7 rounded-lg grid place-items-center text-xs font-bold border ${s.cls}`}>
                     {s.step}
                   </div>
                   <p className="text-xs text-slate-600">{s.text}</p>
