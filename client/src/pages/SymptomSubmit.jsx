@@ -10,6 +10,13 @@ const toOptionalNumber = (value) => {
   return Number.isFinite(n) ? n : undefined;
 };
 
+const DiseasePrediction = ({ result }) => (
+  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-4 rounded-xl border border-emerald-200 bg-emerald-50">
+    <p className="font-semibold text-emerald-800">AI Risk: {result.risk} ({result.probability})</p>
+    <p className="text-sm text-emerald-700 mt-1">{result.explanation}</p>
+  </motion.div>
+);
+
 export default function SymptomSubmit() {
   const [form, setForm] = useState({
     name: '', age: '', gender: 'Male', city: '', area: '', pincode: '',
@@ -139,12 +146,7 @@ export default function SymptomSubmit() {
           {error}
         </motion.div>
       )}
-      {result && (
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-4 rounded-xl border border-emerald-200 bg-emerald-50">
-          <p className="font-semibold text-emerald-800">AI Risk: {result.risk} ({result.probability})</p>
-          <p className="text-sm text-emerald-700 mt-1">{result.explanation}</p>
-        </motion.div>
-      )}
+      {result && <DiseasePrediction result={result} />}
     </motion.div>
   );
 }
