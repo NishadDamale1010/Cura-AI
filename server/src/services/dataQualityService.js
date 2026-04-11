@@ -61,12 +61,17 @@ async function detectDuplicates(userId, symptoms, city) {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const symptomNames = (symptoms || []).map((s) => (typeof s === 'string' ? s : s.name)).filter(Boolean);
   if (symptomNames.length === 0) return flags;
-
-  const recent = await HealthRecord.find({
-    userId,
-    'location.city': city,
-    createdAt: { $gte: cutoff },
-  }).lean();
+  let recent = [];
+  try {
+    recent = await HealthRecord.find({
+      userId,
+      'location.city': city,
+      createdAt: { $gte: cutoff },
+    }).lean();
+  } catch (_error) {
+    flags.push({ type: 'warning', field: 'record', message: 'Duplicate detection skipped (database unavailable)' });
+    return flags;
+  }
 
   for (const rec of recent) {
     const existingNames = (rec.symptoms || []).map((s) => s.name).filter(Boolean);
@@ -115,12 +120,16 @@ async function assessQuality(body, userId) {
 }
 
 async function logQuality(recordId, qualityScore, flags, validationPassed) {
-  return DataQualityLog.create({
-    recordId,
-    qualityScore,
-    flags,
-    validationPassed,
-  });
+  try {
+    return await DataQualityLog.create({
+      recordId,
+      qualityScore,
+      flags,
+      validationPassed,
+    });
+  } catch (_error) {
+    return null;
+  }
 }
 
 module.exports = { validateSchema, handleMissingValues, detectDuplicates, computeQualityScore, assessQuality, logQuality };
