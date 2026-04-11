@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ClipboardList, FileText, Database, BookOpen, Search, Save } from 'lucide-react';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 
 const Card = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm ${className}`}>{children}</div>
@@ -13,7 +14,6 @@ export default function DoctorReports() {
   const [bulk, setBulk] = useState({ numberOfCases: '', diseaseType: '', region: '' });
   const [monthly, setMonthly] = useState({ month: new Date().toISOString().slice(0, 7), region: '', summary: '', totalCasesReviewed: '', highRiskCount: '', dominantDisease: '', recommendations: '' });
   const [library, setLibrary] = useState([]);
-  const [error, setError] = useState('');
 
   const load = async () => {
     const [{ data }, reportRes] = await Promise.all([api.get('/api/data/all', { params: { region } }), api.get('/api/reports/mine')]);
@@ -21,34 +21,47 @@ export default function DoctorReports() {
     setLibrary(reportRes.data.reports || []);
   };
 
-  useEffect(() => { load().catch(() => setError('Failed to load data')); }, []);
+  useEffect(() => { load().catch(() => toast.error('Failed to load data')); }, []);
 
   const saveDiagnosis = async (id, payload) => {
-    try { await api.patch(`/api/data/${id}/diagnosis`, payload); setError(''); await load(); }
-    catch (err) { setError(err.response?.data?.message || 'Failed to save diagnosis'); }
+    try {
+      await api.patch(`/api/data/${id}/diagnosis`, payload);
+      toast.success('Diagnosis saved');
+      await load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save diagnosis');
+    }
   };
 
   const submitBulk = async (e) => {
     e.preventDefault();
-    await api.post('/api/data/bulk', { ...bulk, numberOfCases: Number(bulk.numberOfCases) });
-    setBulk({ numberOfCases: '', diseaseType: '', region: '' });
-    await load();
+    try {
+      await api.post('/api/data/bulk', { ...bulk, numberOfCases: Number(bulk.numberOfCases) });
+      setBulk({ numberOfCases: '', diseaseType: '', region: '' });
+      toast.success('Bulk cases added successfully');
+      await load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to add bulk cases');
+    }
   };
 
   const submitMonthly = async (e) => {
     e.preventDefault();
-    await api.post('/api/reports/doctor/monthly', {
-      ...monthly, totalCasesReviewed: Number(monthly.totalCasesReviewed || 0), highRiskCount: Number(monthly.highRiskCount || 0),
-      recommendations: monthly.recommendations.split('\n').map((line) => line.trim()).filter(Boolean),
-    });
-    setMonthly((m) => ({ ...m, summary: '', totalCasesReviewed: '', highRiskCount: '', dominantDisease: '', recommendations: '' }));
-    await load();
+    try {
+      await api.post('/api/reports/doctor/monthly', {
+        ...monthly, totalCasesReviewed: Number(monthly.totalCasesReviewed || 0), highRiskCount: Number(monthly.highRiskCount || 0),
+        recommendations: monthly.recommendations.split('\n').map((line) => line.trim()).filter(Boolean),
+      });
+      setMonthly((m) => ({ ...m, summary: '', totalCasesReviewed: '', highRiskCount: '', dominantDisease: '', recommendations: '' }));
+      toast.success('Monthly report saved');
+      await load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save report');
+    }
   };
 
   return (
     <div className="space-y-5 max-w-[1400px] mx-auto">
-      {error && <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="p-3 rounded-xl bg-rose-50 text-rose-600 text-sm border border-rose-100">{error}</motion.div>}
-
       {/* Case Manager */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
         <Card className="p-5 overflow-auto">

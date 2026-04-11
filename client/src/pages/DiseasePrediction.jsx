@@ -56,7 +56,7 @@ const DISEASES = {
       { key: 'blood_pressure', label: 'Blood Pressure', type: 'number', min: 0, max: 150, default: 70, unit: 'mm Hg', info: 'Diastolic blood pressure' },
       { key: 'skin_thickness', label: 'Skin Thickness', type: 'number', min: 0, max: 100, default: 20, unit: 'mm', info: 'Triceps skin fold thickness' },
       { key: 'insulin', label: 'Insulin Level', type: 'number', min: 0, max: 900, default: 80, unit: 'mu U/ml', info: '2-Hour serum insulin' },
-      { key: 'bmi', label: 'BMI', type: 'number', min: 0, max: 70, step: 0.1, default: 25.0, unit: 'kg/m²', info: 'Body Mass Index' },
+      { key: 'bmi', label: 'BMI', type: 'number', min: 0, max: 70, step: 0.1, default: 25.0, unit: 'kg/m\u00b2', info: 'Body Mass Index' },
       { key: 'dpf', label: 'Diabetes Pedigree Function', type: 'number', min: 0, max: 3, step: 0.001, default: 0.5, info: 'Genetic diabetes likelihood score' },
       { key: 'age', label: 'Age', type: 'slider', min: 1, max: 100, step: 1, default: 35, unit: 'years' },
     ],
@@ -104,11 +104,18 @@ const TABS = ['heart', 'diabetes', 'parkinsons'];
 
 /* ───── Stat data for the header overview ───── */
 const overviewStats = [
-  { label: 'Models Active', value: '3', sub: 'Heart · Diabetes · Parkinsons', icon: Cpu, color: 'emerald' },
+  { label: 'Models Active', value: '3', sub: 'Heart \u00b7 Diabetes \u00b7 Parkinsons', icon: Cpu, color: 'cyan' },
   { label: 'Total Dataset Size', value: '1,266', sub: 'Training samples combined', icon: Database, color: 'blue' },
   { label: 'Avg Accuracy', value: '85.2%', sub: 'Across all models', icon: TrendingUp, color: 'violet' },
   { label: 'Patients Screened', value: '1,266', sub: 'From reference datasets', icon: Users, color: 'amber' },
 ];
+
+const statColors = {
+  cyan: 'bg-cyan-50 text-cyan-600 border-cyan-200',
+  blue: 'bg-blue-50 text-blue-600 border-blue-200',
+  violet: 'bg-violet-50 text-violet-600 border-violet-200',
+  amber: 'bg-amber-50 text-amber-600 border-amber-200',
+};
 
 /* ───── Component ───── */
 export default function DiseasePrediction() {
@@ -138,17 +145,16 @@ export default function DiseasePrediction() {
     setResult(null);
     try {
       const payload = { ...formData[activeTab] };
-      // Convert all values to numbers
       Object.keys(payload).forEach((k) => { payload[k] = Number(payload[k]); });
       const { data } = await api.post(`/api/disease-predict/${activeTab}`, payload);
       setResult(data);
       if (data.risk === 'High') {
-        toast.error(`High risk detected for ${disease.label}`);
+        toast.error(`High risk detected for ${disease.label}`, { duration: 5000 });
       } else {
-        toast.success(`Low risk for ${disease.label}`);
+        toast.success(`Low risk for ${disease.label}`, { duration: 4000 });
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Prediction failed. Ensure AI service is running.');
+      toast.error(err.response?.data?.message || 'Prediction failed. Ensure AI service is running on port 8000.');
     } finally {
       setLoading(false);
     }
@@ -160,14 +166,14 @@ export default function DiseasePrediction() {
 
   return (
     <div className="space-y-6">
-      {/* ─── Page Header ─── */}
+      {/* Page Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex items-center gap-3 mb-1">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white grid place-items-center shadow-soft">
+          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white grid place-items-center shadow-lg">
             <Stethoscope size={20} />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-slate-800">
+            <h1 className="text-2xl font-bold text-slate-800">
               Disease Outbreak Prediction
             </h1>
             <p className="text-sm text-slate-500">AI-powered disease risk assessment using trained ML models &amp; real clinical datasets</p>
@@ -175,19 +181,18 @@ export default function DiseasePrediction() {
         </div>
       </motion.div>
 
-      {/* ─── Overview Stats ─── */}
+      {/* Overview Stats */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
         className="grid grid-cols-2 lg:grid-cols-4 gap-3"
       >
         {overviewStats.map((s, i) => {
           const Icon = s.icon;
-          const colors = { emerald: 'bg-emerald-50 text-emerald-600 border-emerald-200', blue: 'bg-blue-50 text-blue-600 border-blue-200', violet: 'bg-violet-50 text-violet-600 border-violet-200', amber: 'bg-amber-50 text-amber-600 border-amber-200' };
           return (
             <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 + i * 0.04 }}
-              className="bg-white rounded-2xl border border-emerald-100/50 shadow-card p-4 hover:shadow-card-hover transition-all duration-300"
+              className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:shadow-md transition-all duration-300"
             >
               <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-xl border grid place-items-center ${colors[s.color]}`}>
+                <div className={`h-10 w-10 rounded-xl border grid place-items-center ${statColors[s.color]}`}>
                   <Icon size={18} />
                 </div>
                 <div>
@@ -201,9 +206,9 @@ export default function DiseasePrediction() {
         })}
       </motion.div>
 
-      {/* ─── Tab Selector ─── */}
+      {/* Tab Selector */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="flex gap-2 bg-white rounded-2xl border border-emerald-100/50 shadow-card p-2"
+        className="flex gap-2 bg-white rounded-2xl border border-slate-100 shadow-sm p-2"
       >
         {TABS.map((tab) => {
           const d = DISEASES[tab];
@@ -226,12 +231,12 @@ export default function DiseasePrediction() {
         })}
       </motion.div>
 
-      {/* ─── Main Content Grid ─── */}
+      {/* Main Content Grid */}
       <div className="grid xl:grid-cols-[1fr_380px] gap-5">
         {/* Left: Form */}
         <AnimatePresence mode="wait">
           <motion.div key={activeTab} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 16 }} transition={{ duration: 0.3 }}
-            className="bg-white rounded-2xl border border-emerald-100/50 shadow-card overflow-hidden"
+            className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
           >
             {/* Disease Header */}
             <div className={`bg-gradient-to-r ${disease.gradient} p-5 text-white`}>
@@ -295,7 +300,7 @@ export default function DiseasePrediction() {
                           step={field.step || 1}
                           value={formData[activeTab][field.key]}
                           onChange={(e) => updateField(field.key, Number(e.target.value))}
-                          className="flex-1 h-2 rounded-full appearance-none bg-emerald-100 accent-emerald-500"
+                          className="flex-1 h-2 rounded-full appearance-none bg-cyan-100 accent-cyan-500"
                         />
                         <span className="text-sm font-semibold text-slate-700 min-w-[40px] text-right">
                           {formData[activeTab][field.key]}
@@ -347,7 +352,7 @@ export default function DiseasePrediction() {
           <AnimatePresence mode="wait">
             {result ? (
               <motion.div key="result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white rounded-2xl border border-emerald-100/50 shadow-card overflow-hidden"
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden"
               >
                 {/* Risk Header */}
                 <div className={`bg-gradient-to-r ${riskGradient} p-5 text-white text-center`}>
@@ -411,14 +416,14 @@ export default function DiseasePrediction() {
               </motion.div>
             ) : (
               <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                className="bg-white rounded-2xl border border-emerald-100/50 shadow-card p-8 text-center"
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 text-center"
               >
-                <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-emerald-50 text-emerald-400 grid place-items-center">
+                <div className="mx-auto mb-4 h-16 w-16 rounded-2xl bg-cyan-50 text-cyan-400 grid place-items-center">
                   <Shield size={28} />
                 </div>
                 <h3 className="text-base font-semibold text-slate-700">Ready for Analysis</h3>
                 <p className="text-sm text-slate-400 mt-1">Fill in patient data and click "Run AI Prediction" to get results</p>
-                <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-emerald-600">
+                <div className="mt-4 flex items-center justify-center gap-1.5 text-xs text-cyan-600">
                   <Activity size={13} className="animate-pulse" />
                   <span>AI models loaded &amp; ready</span>
                 </div>
@@ -428,10 +433,10 @@ export default function DiseasePrediction() {
 
           {/* Model Info Card */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-            className="bg-white rounded-2xl border border-emerald-100/50 shadow-card p-5"
+            className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
           >
             <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-              <BarChart3 size={15} className="text-emerald-500" />
+              <BarChart3 size={15} className="text-cyan-500" />
               Dataset Statistics
             </h3>
             <div className="space-y-3">
@@ -458,7 +463,7 @@ export default function DiseasePrediction() {
 
           {/* How It Works */}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-            className="bg-white rounded-2xl border border-emerald-100/50 shadow-card p-5"
+            className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5"
           >
             <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <Zap size={15} className="text-amber-500" />
@@ -466,7 +471,7 @@ export default function DiseasePrediction() {
             </h3>
             <div className="space-y-2.5">
               {[
-                { step: '1', text: 'Enter patient clinical data', cls: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
+                { step: '1', text: 'Enter patient clinical data', cls: 'bg-cyan-50 text-cyan-600 border-cyan-200' },
                 { step: '2', text: 'Data is normalized using trained scaler', cls: 'bg-blue-50 text-blue-600 border-blue-200' },
                 { step: '3', text: 'SVM classifier predicts disease risk', cls: 'bg-violet-50 text-violet-600 border-violet-200' },
                 { step: '4', text: 'Results with confidence & medical advice', cls: 'bg-amber-50 text-amber-600 border-amber-200' },
