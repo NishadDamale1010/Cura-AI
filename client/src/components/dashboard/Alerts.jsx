@@ -1,7 +1,7 @@
 const toneMap = {
-  Critical: 'border-rose-400/50 bg-rose-500/10 text-rose-300',
-  Warning: 'border-amber-400/50 bg-amber-500/10 text-amber-300',
-  Info: 'border-cyan-400/50 bg-cyan-500/10 text-cyan-300',
+  Critical: 'border-rose-200 bg-rose-50 text-rose-700',
+  Warning: 'border-amber-200 bg-amber-50 text-amber-700',
+  Info: 'border-emerald-200 bg-emerald-50 text-emerald-700',
 };
 
 export default function Alerts() {
@@ -12,14 +12,14 @@ export default function Alerts() {
   ];
 
   return (
-    <aside className="dashboard-glass rounded-2xl p-4">
-      <h3 className="font-semibold dashboard-text mb-3">Live Alerts</h3>
+    <aside className="bg-white rounded-2xl border border-emerald-100/50 shadow-card p-4">
+      <h3 className="font-semibold text-slate-800 mb-3">Live Alerts</h3>
       <div className="space-y-3">
         {alerts.map((alert) => (
           <article key={alert.title} className={`rounded-xl border p-3 ${toneMap[alert.severity]}`}>
             <p className="font-semibold text-sm">{alert.title}</p>
             <p className="text-xs opacity-80 mt-1">{alert.location}</p>
-            <p className="text-xs mt-2">{alert.severity}</p>
+            <p className="text-xs mt-2 font-medium">{alert.severity}</p>
           </article>
         ))}
       </div>
