@@ -8,7 +8,28 @@ import toast from 'react-hot-toast';
 const trendIcons = { rising: TrendingUp, declining: TrendingDown, stable: Minus };
 const trendColors = { rising: 'text-danger-500', declining: 'text-primary-500', stable: 'text-warning-500' };
 const severityBadge = { High: 'badge-danger', Moderate: 'badge-warning', Low: 'badge-success' };
-const pieColors = ['#43A047', '#F59E0B', '#E53E3E', '#3B82F6', '#8B5CF6', '#EC4899'];
+
+// Gradient definitions for enhanced visuals
+const GRADIENT_COLORS = [
+  { id: 'gradGreen', start: '#43A047', end: '#1b5e20' },
+  { id: 'gradAmber', start: '#F59E0B', end: '#92400e' },
+  { id: 'gradRed', start: '#E53E3E', end: '#7f1d1d' },
+  { id: 'gradBlue', start: '#3B82F6', end: '#1e3a8a' },
+  { id: 'gradPurple', start: '#8B5CF6', end: '#4c1d95' },
+  { id: 'gradPink', start: '#EC4899', end: '#831843' },
+];
+
+// SVG Defs Component for gradients
+const GradientDefs = () => (
+  <defs>
+    {GRADIENT_COLORS.map(gradient => (
+      <linearGradient key={gradient.id} id={gradient.id} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor={gradient.start} />
+        <stop offset="100%" stopColor={gradient.end} />
+      </linearGradient>
+    ))}
+  </defs>
+);
 
 function formatNum(n) {
   if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
@@ -46,7 +67,7 @@ export default function TrendingDiseases() {
   ];
 
   const barData = data.diseases.map((d) => ({ name: d.name.length > 10 ? d.name.slice(0, 10) + '...' : d.name, active: d.active, today: d.todayCases }));
-  const pieData = data.diseases.map((d, i) => ({ name: d.name, value: d.active, fill: pieColors[i % pieColors.length] }));
+  const pieData = data.diseases.map((d, i) => ({ name: d.name, value: d.active, gradId: GRADIENT_COLORS[i % GRADIENT_COLORS.length].id }));
 
   return (
     <div className="space-y-5 animate-fade-up">
@@ -206,9 +227,10 @@ export default function TrendingDiseases() {
             <div className="h-72">
               <ResponsiveContainer>
                 <PieChart>
+                  <GradientDefs />
                   <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={3}
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                    {pieData.map((e) => <Cell key={e.name} fill={e.fill} stroke="none" />)}
+                    {pieData.map((e) => <Cell key={e.name} fill={`url(#${e.gradId})`} stroke="none" />)}
                   </Pie>
                   <Tooltip formatter={(v) => formatNum(v)} contentStyle={{ borderRadius: 16, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }} />
                 </PieChart>
