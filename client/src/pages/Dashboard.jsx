@@ -1,6 +1,27 @@
 import { Area, AreaChart, CartesianGrid, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from 'recharts';
 import StatCard from '../components/StatCard';
 
+// Gradient definitions for enhanced visuals
+const GRADIENT_DEFS = {
+  influenza: { id: 'gradInfluenza', start: '#3b82f6', end: '#1e3a8a' },
+  covid19: { id: 'gradCovid', start: '#8b5cf6', end: '#4c1d95' },
+  dengue: { id: 'gradDengue', start: '#ec4899', end: '#831843' },
+  malaria: { id: 'gradMalaria', start: '#f59e0b', end: '#92400e' },
+  tuberculosis: { id: 'gradTuberculosis', start: '#10b981', end: '#065f46' },
+};
+
+// SVG Defs Component for gradients
+const GradientDefs = () => (
+  <defs>
+    {Object.values(GRADIENT_DEFS).map(gradient => (
+      <linearGradient key={gradient.id} id={gradient.id} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor={gradient.start} />
+        <stop offset="100%" stopColor={gradient.end} />
+      </linearGradient>
+    ))}
+  </defs>
+);
+
 const trend = [
   { date: '2026-01-01', influenza: 180, covid19: 90, dengue: 40, malaria: 10 },
   { date: '2026-02-01', influenza: 300, covid19: 140, dengue: 55, malaria: 20 },
@@ -9,11 +30,11 @@ const trend = [
 ];
 
 const dist = [
-  { name: 'Influenza', value: 51, color: '#3b82f6' },
-  { name: 'COVID-19', value: 24, color: '#8b5cf6' },
-  { name: 'Dengue', value: 16, color: '#ec4899' },
-  { name: 'Malaria', value: 6, color: '#f59e0b' },
-  { name: 'Tuberculosis', value: 4, color: '#10b981' },
+  { name: 'Influenza', value: 51, gradId: 'gradInfluenza' },
+  { name: 'COVID-19', value: 24, gradId: 'gradCovid' },
+  { name: 'Dengue', value: 16, gradId: 'gradDengue' },
+  { name: 'Malaria', value: 6, gradId: 'gradMalaria' },
+  { name: 'Tuberculosis', value: 4, gradId: 'gradTuberculosis' },
 ];
 
 export default function Dashboard() {
@@ -48,8 +69,9 @@ export default function Dashboard() {
           <h3 className="text-3xl font-semibold mb-3">Current Disease Distribution</h3>
           <ResponsiveContainer>
             <PieChart>
+              <GradientDefs />
               <Pie data={dist} dataKey="value" nameKey="name" outerRadius={140} label>
-                {dist.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
+                {dist.map((entry) => <Cell key={entry.name} fill={`url(#${entry.gradId})`} />)}
               </Pie>
               <Tooltip />
             </PieChart>

@@ -1,0 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─────────────────────────────────────────────────────────── */
+/* THEME VARIABLES & ROOT STYLES */
+/* ─────────────────────────────────────────────────────────── */
+
+@layer base {
+  :root {
+    /* Light Mode Colors */
+    --bg-primary: #f8fafc;
+    --bg-secondary: #eef2ff;
+    --bg-tertiary: #ffffff;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --card-border: rgba(100, 116, 139, 0.2);
+    --accent-primary: #6366f1;
+    --accent-secondary: #14b8a6;
+    --accent-tertiary: #ec4899;
+    --glow-primary: rgba(99, 102, 241, 0.3);
+    --glow-secondary: rgba(20, 184, 166, 0.3);
+  }
+
+  .dark {
+    /* Dark Mode Colors */
+    --bg-primary: #0b0f1a;
+    --bg-secondary: #0f172a;
+    --bg-tertiary: #1a1f35;
+    --text-primary: #f1f5f9;
+    --text-secondary: #cbd5e1;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --accent-primary: #818cf8;
+    --accent-secondary: #06d6a0;
+    --accent-tertiary: #ec4899;
+    --glow-primary: rgba(129, 140, 248, 0.5);
+    --glow-secondary: rgba(6, 214, 160, 0.5);
+  }
+
+  * {
+    @apply transition-colors duration-300;
+  }
+
+  body {
+    @apply bg-gradient-to-br text-sm;
+    background-color: var(--bg-primary);
+    background-image: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    color: var(--text-primary);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────── */
+/* GLASSMORPHISM UTILITIES */
+/* ─────────────────────────────────────────────────────────── */
+
+@layer components {
+  .glass {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10 rounded-xl;
+  }
+
+  .glass-light {
+    @apply backdrop-blur-lg bg-white/70 border border-white/20 rounded-xl shadow-xl;
+  }
+
+  .dark .glass-light {
+    @apply bg-white/5 border-white/10;
+  }
+
+  .card {
+    @apply rounded-2xl p-5 transition-all duration-300;
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+    @apply border;
+  }
+
+  .card-hover {
+    @apply hover:scale-105 hover:shadow-2xl;
+  }
+
+  .glow-primary {
+    @apply shadow-lg;
+    box-shadow: 0 0 30px var(--glow-primary),
+                0 0 60px var(--glow-primary, rgba(99, 102, 241, 0.2));
+  }
+
+  .glow-secondary {
+    @apply shadow-lg;
+    box-shadow: 0 0 30px var(--glow-secondary),
+                0 0 60px var(--glow-secondary, rgba(20, 184, 166, 0.2));
+  }
+
+  .input-field {
+    @apply px-4 py-2 rounded-lg border transition-all duration-300;
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+    color: var(--text-primary);
+  }
+
+  .input-field:focus {
+    @apply outline-none border-opacity-100;
+    box-shadow: 0 0 20px var(--glow-primary);
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 rounded-lg font-semibold transition-all duration-300 cursor-pointer;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    color: white;
+  }
+
+  .btn-primary:hover {
+    @apply scale-105;
+    box-shadow: 0 0 20px var(--glow-primary);
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-300 cursor-pointer;
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+    @apply border;
+    color: var(--text-primary);
+  }
+
+  .badge {
+    @apply px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-success {
+    @apply bg-emerald-500/20 text-emerald-400 border border-emerald-500/30;
+  }
+
+  .badge-warning {
+    @apply bg-amber-500/20 text-amber-400 border border-amber-500/30;
+  }
+
+  .badge-danger {
+    @apply bg-rose-500/20 text-rose-400 border border-rose-500/30;
+  }
+
+  .badge-info {
+    @apply bg-blue-500/20 text-blue-400 border border-blue-500/30;
+  }
+
+  /* Animations */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px currentColor; opacity: 1; }
+    50% { box-shadow: 0 0 40px currentColor; opacity: 0.8; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .shimmer {
+    animation: shimmer 2s infinite;
+    background-size: 1000px 100%;
+  }
+
+  .gradient-shift {
+    animation: gradient-shift 8s ease infinite;
+    background-size: 200% 200%;
+  }
+
+  /* Skeleton Loading */
+  .skeleton {
+    @apply rounded-xl animate-pulse;
+    background: linear-gradient(90deg, var(--card-bg) 0%, rgba(255,255,255,0.1) 50%, var(--card-bg) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  /* Scrollbar Styles */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--accent-primary);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-secondary);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────── */
+/* RESPONSIVE UTILITIES */
+/* ─────────────────────────────────────────────────────────── */
+
+@layer utilities {
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  .flex-between {
+    @apply flex items-center justify-between;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r;
+  }
+
+  .max-container {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+}
