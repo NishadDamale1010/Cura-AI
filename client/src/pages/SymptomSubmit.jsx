@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { PlusCircle, Thermometer, Heart, Wind, Send, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 
 const symptomList = ['Fever', 'Cough', 'Fatigue', 'Headache', 'Breathing Issues', 'Body Pain'];
 const toOptionalNumber = (value) => {
@@ -49,10 +50,13 @@ export default function SymptomSubmit() {
       const { data } = await api.post('/api/data/add', payload);
       setResult(data);
       setError('');
+      toast.success(`Record submitted! AI Risk: ${data.risk || 'Calculated'}`);
     } catch (err) {
       const backendErrors = err.response?.data?.errors;
       const normalized = Array.isArray(backendErrors) ? ` (${backendErrors.join(', ')})` : '';
-      setError((err.userMessage || err.response?.data?.message || 'Failed to submit record') + normalized);
+      const msg = (err.userMessage || err.response?.data?.message || 'Failed to submit record') + normalized;
+      setError(msg);
+      toast.error(msg);
     }
   };
 

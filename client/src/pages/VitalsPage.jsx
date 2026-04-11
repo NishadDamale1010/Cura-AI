@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { HeartPulse, Thermometer, Wind, Activity, Plus } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import toast from 'react-hot-toast';
 
 const Card = ({ children, className = '' }) => (
   <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm ${className}`}>{children}</div>
@@ -17,8 +18,13 @@ export default function VitalsPage() {
 
   const add = (e) => {
     e.preventDefault();
+    if (!form.temp && !form.spo2 && !form.hr) {
+      toast.error('Please enter at least one vital sign');
+      return;
+    }
     setLogs([{ ...form, time: new Date().toLocaleTimeString() }, ...logs]);
     setForm({ temp: '', spo2: '', hr: '' });
+    toast.success('Vitals logged successfully');
   };
 
   const chartData = logs.slice().reverse().map((l, i) => ({

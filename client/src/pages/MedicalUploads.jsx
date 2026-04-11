@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, FileText, Tag, Flag, FolderOpen } from 'lucide-react';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 
 const initialFlags = { highFever: false, lowSpo2: false, respiratoryDistress: false };
 const flagLabels = { highFever: 'High Fever', lowSpo2: 'Low SpO2', respiratoryDistress: 'Respiratory Distress' };
@@ -16,24 +17,29 @@ export default function MedicalUploads() {
   const [tags, setTags] = useState('cbc,blood-test');
   const [flags, setFlags] = useState(initialFlags);
   const [reports, setReports] = useState([]);
-  const [status, setStatus] = useState({ loading: false, error: '', message: '' });
+  const [status, setStatus] = useState({ loading: false, error: '' });
 
   const loadReports = async () => { const { data } = await api.get('/api/reports/mine'); setReports(data.reports || []); };
-  useEffect(() => { loadReports().catch(() => setStatus((s) => ({ ...s, error: 'Unable to load reports' }))); }, []);
+  useEffect(() => { loadReports().catch(() => toast.error('Unable to load reports')); }, []);
 
   const submit = async (e) => {
     e.preventDefault();
     if (!selected) return;
-    if (selected.size > 10 * 1024 * 1024) { setStatus({ loading: false, error: 'File exceeds 10MB upload limit.', message: '' }); return; }
-    setStatus({ loading: true, error: '', message: '' });
+    if (selected.size > 10 * 1024 * 1024) { toast.error('File exceeds 10MB upload limit'); return; }
+    setStatus({ loading: true, error: '' });
     try {
       const form = new FormData();
       form.append('file', selected); form.append('notes', notes); form.append('tags', tags);
       Object.entries(flags).forEach(([k, v]) => form.append(k, String(v)));
       await api.post('/api/reports/patient/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
       setSelected(null); setNotes(''); setTags('cbc,blood-test'); setFlags(initialFlags); await loadReports();
-      setStatus({ loading: false, error: '', message: 'Report uploaded successfully.' });
-    } catch (err) { setStatus({ loading: false, error: err.userMessage || err.response?.data?.message || 'Upload failed', message: '' }); }
+      setStatus({ loading: false, error: '' });
+      toast.success('Report uploaded successfully');
+    } catch (err) {
+      const msg = err.userMessage || err.response?.data?.message || 'Upload failed';
+      setStatus({ loading: false, error: msg });
+      toast.error(msg);
+    }
   };
 
   return (
@@ -73,7 +79,6 @@ export default function MedicalUploads() {
 
             <button disabled={!selected || status.loading} className="btn-primary disabled:opacity-60"><Upload size={16} />{status.loading ? 'Uploading...' : 'Upload Report'}</button>
             {status.error && <p className="text-sm text-rose-600">{status.error}</p>}
-            {status.message && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-emerald-700 font-medium">{status.message}</motion.p>}
           </form>
         </Card>
       </motion.div>
